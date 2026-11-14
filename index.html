@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&display=swap" rel="stylesheet">
+
 <style>
 :root{
   --bg:#f4f6ef;--surface:#ffffff;--ink:#0e1a2c;--muted:#55627a;--line:#d8dece;
@@ -99,9 +100,13 @@ legend,.field>label{display:block;font-weight:700;margin-bottom:10px}
 .booking input[type=text],.booking input[type=tel],.booking select,.booking textarea{width:100%;min-height:52px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:inherit}
 .booking textarea{min-height:100px;resize:vertical}
 .booking input:focus,.booking select:focus,.booking textarea:focus{outline:2px solid var(--accent);outline-offset:2px}
-.hint{font-size:13px;color:var(--muted);margin-top:6px}
+.hint{font-size:13px;color:var(--muted);margin-top:8px;overflow-wrap:anywhere}
+.hint a{color:var(--accent);font-weight:700}
+.hint.success{color:var(--ok)}
+.hint.error{color:var(--err)}
+.loc-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
-.booking button{cursor:pointer;width:100%}
+.booking button{cursor:pointer}
 .booking button:disabled{opacity:.6;cursor:not-allowed}
 #bookingMessage{margin-top:14px;font-weight:700;overflow-wrap:anywhere}
 #bookingMessage.success{color:var(--ok)}
@@ -158,6 +163,7 @@ footer{margin-top:72px;padding:28px 0 36px;border-top:1px solid var(--line);colo
 }
 </style>
 </head>
+
 <body>
 <div class="wrap">
 
@@ -215,7 +221,6 @@ footer{margin-top:72px;padding:28px 0 36px;border-top:1px solid var(--line);colo
   <div><b>3 khu vực</b><span>Giai đoạn đầu ở miền Nam</span></div>
 </div>
 
-<!-- ĐẶT DỊCH VỤ -->
 <section class="booking" id="dat-xe">
   <h2>Đặt dịch vụ MOVA</h2>
   <p class="sub">Điền thông tin, MOVA sẽ gọi lại xác nhận đơn của bạn.</p>
@@ -250,7 +255,17 @@ footer{margin-top:72px;padding:28px 0 36px;border-top:1px solid var(--line);colo
       <div class="field">
         <label for="pickup">Điểm đón / nhận hàng *</label>
         <input id="pickup" type="text" maxlength="300" placeholder="Số nhà, đường, quận/huyện">
+
+        <div class="loc-actions">
+          <button class="btn btn-ghost btn-sm" id="locateButton" type="button">📍 Dùng vị trí hiện tại</button>
+          <button class="btn btn-ghost btn-sm" id="clearLocButton" type="button" hidden>Xóa vị trí</button>
+        </div>
+
+        <p class="hint" id="locationMessage" role="status" aria-live="polite">
+          Vị trí chỉ dùng để tài xế tìm đúng điểm đón. Nên ghi thêm số nhà, tên hẻm.
+        </p>
       </div>
+
       <div class="field">
         <label for="dropoff">Điểm đến / giao hàng *</label>
         <input id="dropoff" type="text" maxlength="300" placeholder="Số nhà, đường, quận/huyện">
@@ -342,56 +357,196 @@ if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)
 var MOVA_SUPABASE_URL = "https://ujggieewnhzekuphtbmj.supabase.co";
 var MOVA_SUPABASE_KEY = "sb_publishable_ANjWXcCTlAlJ0UZ5YqgXvQ_SkhErKsf";
 var COOLDOWN_MS = 30000;
+var AUTO_PICKUP_TEXT = "Vị trí GPS hiện tại";
+var DEFAULT_HINT = "Vị trí chỉ dùng để tài xế tìm đúng điểm đón. Nên ghi thêm số nhà, tên hẻm.";
 
 var form = document.getElementById("movaBookingForm");
 var button = document.getElementById("bookingButton");
 var message = document.getElementById("bookingMessage");
 var weightField = document.getElementById("weightField");
+var pickupInput = document.getElementById("pickup");
+var locateButton = document.getElementById("locateButton");
+var clearLocButton = document.getElementById("clearLocButton");
+var locationMessage = document.getElementById("locationMessage");
+
+var pickupLatitude = null;
+var pickupLongitude = null;
+var autoFilled = false;
 
 function show(type, text) {
   message.className = type;
   message.textContent = text;
 }
 
-function cleanPhone(v) {
-  return v.replace(/[\s.\-()]/g, "");
+function normalizePhone(v) {
+  var p = v.replace(/[\s.\-()]/g, "");
+  if (/^\+?84\d{9,10}$/.test(p)) p = "0" + p.replace(/^\+?84/, "");
+  return p;
 }
 
 function validPhone(v) {
-  return /^(0|\+?84)\d{9,10}$/.test(v);
+  return /^0\d{9,10}$/.test(v);
 }
 
-// Show truck weight only when MOVA Truck is selected
+function mapUrl(lat, lng) {
+  return "https://www.google.com/maps?q=" + lat + "," + lng;
+}
+
+/* ---------- Định vị GPS ---------- */
+function setLoc(type, text, url) {
+  locationMessage.className = "hint" + (type ? " " + type : "");
+  locationMessage.textContent = text;
+  if (url) {
+    locationMessage.appendChild(document.createTextNode(" "));
+    var a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "Xem trên bản đồ";
+    locationMessage.appendChild(a);
+  }
+}
+
+function clearLocation() {
+  pickupLatitude = null;
+  pickupLongitude = null;
+  clearLocButton.hidden = true;
+  locateButton.textContent = "📍 Dùng vị trí hiện tại";
+  if (autoFilled && pickupInput.value === AUTO_PICKUP_TEXT) pickupInput.value = "";
+  autoFilled = false;
+  setLoc("", DEFAULT_HINT);
+}
+
+function getPosition(highAccuracy, timeout, maxAge) {
+  return new Promise(function (resolve, reject) {
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: highAccuracy,
+      timeout: timeout,
+      maximumAge: maxAge
+    });
+  });
+}
+
+function onPosition(position) {
+  pickupLatitude = Math.round(position.coords.latitude * 1e6) / 1e6;
+  pickupLongitude = Math.round(position.coords.longitude * 1e6) / 1e6;
+  var accuracy = Math.round(position.coords.accuracy || 0);
+
+  if (!pickupInput.value.trim()) {
+    pickupInput.value = AUTO_PICKUP_TEXT;
+    autoFilled = true;
+  }
+
+  clearLocButton.hidden = false;
+  locateButton.textContent = "📍 Định vị lại";
+
+  if (accuracy > 150) {
+    setLoc("error", "Đã lấy vị trí nhưng độ chính xác thấp (khoảng " + accuracy + " m). Hãy ghi thêm địa chỉ cụ thể.", mapUrl(pickupLatitude, pickupLongitude));
+  } else {
+    setLoc("success", "Đã gắn vị trí của bạn" + (accuracy ? " (khoảng " + accuracy + " m)" : "") + ".", mapUrl(pickupLatitude, pickupLongitude));
+  }
+}
+
+function onLocateError(error) {
+  pickupLatitude = null;
+  pickupLongitude = null;
+  clearLocButton.hidden = true;
+
+  var text;
+  if (error && error.code === 1) {
+    text = "Bạn chưa cho phép truy cập vị trí. Hãy bật quyền Vị trí cho trình duyệt trong Cài đặt rồi thử lại, hoặc nhập địa chỉ thủ công.";
+  } else if (error && error.code === 2) {
+    text = "Không xác định được vị trí. Hãy bật GPS trên điện thoại hoặc nhập địa chỉ thủ công.";
+  } else {
+    text = "Định vị quá lâu. Hãy thử lại ở nơi thoáng hơn hoặc nhập địa chỉ thủ công.";
+  }
+  setLoc("error", text);
+}
+
+locateButton.addEventListener("click", function () {
+  if (!navigator.geolocation) {
+    setLoc("error", "Trình duyệt không hỗ trợ GPS. Vui lòng nhập địa chỉ thủ công.");
+    return;
+  }
+  if (window.isSecureContext === false) {
+    setLoc("error", "Cần mở trang bằng https:// để dùng GPS.");
+    return;
+  }
+
+  locateButton.disabled = true;
+  locateButton.textContent = "Đang định vị...";
+  setLoc("", "Đang xác định vị trí...");
+
+  getPosition(true, 12000, 0)
+    .catch(function (err) {
+      if (err && err.code === 1) throw err;      // bị từ chối quyền thì không thử lại
+      return getPosition(false, 10000, 60000);   // thử lại bằng định vị thường
+    })
+    .then(onPosition)
+    .catch(onLocateError)
+    .then(function () {
+      locateButton.disabled = false;
+      if (pickupLatitude === null) locateButton.textContent = "📍 Dùng vị trí hiện tại";
+    });
+});
+
+clearLocButton.addEventListener("click", clearLocation);
+
+// Khách tự sửa địa chỉ thì giữ lại tọa độ, chỉ bỏ cờ tự điền
+pickupInput.addEventListener("input", function () {
+  autoFilled = false;
+});
+
+/* ---------- Form ---------- */
 form.addEventListener("change", function (e) {
   if (e.target.name === "svc") {
     weightField.hidden = e.target.value !== "MOVA Truck";
   }
 });
 
+function postOrder(order, signal) {
+  return fetch(MOVA_SUPABASE_URL + "/rest/v1/orders", {
+    method: "POST",
+    headers: {
+      "apikey": MOVA_SUPABASE_KEY,
+      "Authorization": "Bearer " + MOVA_SUPABASE_KEY,
+      "Content-Type": "application/json",
+      "Prefer": "return=minimal"
+    },
+    body: JSON.stringify(order),
+    signal: signal
+  });
+}
+
 form.addEventListener("submit", async function (event) {
   event.preventDefault();
 
-  // Honeypot: bots fill this hidden field
+  // Chống bot
   if (document.getElementById("website").value) {
     show("success", "Đã gửi đơn thành công! MOVA sẽ liên hệ với bạn.");
     return;
   }
 
   var svcInput = form.querySelector('input[name="svc"]:checked');
-  var pickup = document.getElementById("pickup").value.trim();
+  var pickup = pickupInput.value.trim();
   var dropoff = document.getElementById("dropoff").value.trim();
-  var phone = cleanPhone(document.getElementById("phone").value);
+  var phone = normalizePhone(document.getElementById("phone").value);
   var note = document.getElementById("note").value.trim();
 
   if (!svcInput) { show("error", "Vui lòng chọn dịch vụ."); return; }
+
   if (!validPhone(phone)) {
     show("error", "Số điện thoại chưa đúng. Ví dụ: 0901234567.");
     document.getElementById("phone").focus();
     return;
   }
-  if (!pickup || !dropoff) { show("error", "Vui lòng nhập điểm đón và điểm đến."); return; }
 
-  // Simple cooldown to avoid duplicate orders
+  if (!pickup || !dropoff) {
+    show("error", "Vui lòng nhập điểm đón và điểm đến.");
+    return;
+  }
+
+  // Chống gửi trùng
   try {
     var last = Number(localStorage.getItem("mova_last_order") || 0);
     if (Date.now() - last < COOLDOWN_MS) {
@@ -412,6 +567,13 @@ form.addEventListener("submit", async function (event) {
     note: note || null
   };
 
+  // Chỉ gửi tọa độ khi có GPS
+  var hasGps = pickupLatitude !== null && pickupLongitude !== null;
+  if (hasGps) {
+    order.pickup_latitude = pickupLatitude;
+    order.pickup_longitude = pickupLongitude;
+  }
+
   button.disabled = true;
   button.textContent = "Đang gửi...";
   show("", "Đang gửi đơn hàng...");
@@ -420,17 +582,19 @@ form.addEventListener("submit", async function (event) {
   var timer = setTimeout(function () { controller.abort(); }, 12000);
 
   try {
-    var response = await fetch(MOVA_SUPABASE_URL + "/rest/v1/orders", {
-      method: "POST",
-      headers: {
-        "apikey": MOVA_SUPABASE_KEY,
-        "Authorization": "Bearer " + MOVA_SUPABASE_KEY,
-        "Content-Type": "application/json",
-        "Prefer": "return=minimal"
-      },
-      body: JSON.stringify(order),
-      signal: controller.signal
-    });
+    var response = await postOrder(order, controller.signal);
+
+    // Nếu bảng chưa có cột GPS: gửi lại, đưa link bản đồ vào ghi chú để không mất đơn
+    if (!response.ok && hasGps && response.status === 400) {
+      var fallback = {
+        service_type: order.service_type,
+        pickup_address: order.pickup_address,
+        dropoff_address: order.dropoff_address,
+        customer_phone: order.customer_phone,
+        note: ((note ? note + "\n" : "") + "GPS: " + mapUrl(pickupLatitude, pickupLongitude)).slice(0, 1000)
+      };
+      response = await postOrder(fallback, controller.signal);
+    }
 
     if (!response.ok) {
       console.error("MOVA order error:", response.status, await response.text());
@@ -438,10 +602,14 @@ form.addEventListener("submit", async function (event) {
     }
 
     try { localStorage.setItem("mova_last_order", String(Date.now())); } catch (err) {}
+
     show("success", "Đã gửi đơn thành công! MOVA sẽ gọi lại cho bạn sớm nhất.");
     form.reset();
     weightField.hidden = true;
+    autoFilled = false;
+    clearLocation();
     message.scrollIntoView({ behavior: "smooth", block: "center" });
+
   } catch (error) {
     console.error("MOVA submission error:", error);
     show("error", error.name === "AbortError"
