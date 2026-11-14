@@ -1,9 +1,9 @@
 
 {
   "id": "/",
-  "name": "MOVA - Move Easy, Move Smart",
-  "short_name": "MOVA",
-  "description": "MOVA - Nền tảng kết nối khách hàng với tài xế tại Việt Nam",
+  "name": "MoVA",
+  "short_name": "MoVA",
+  "description": "MoVA - Move Easy, Move Smart",
   "lang": "vi",
   "start_url": "/",
   "scope": "/",
