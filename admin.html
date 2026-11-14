@@ -26,7 +26,6 @@ h2{margin:0 0 6px;font-size:22px}
 .muted{color:var(--muted)}
 .hidden,[hidden]{display:none!important}
 :focus-visible{outline:3px solid var(--lime);outline-offset:2px;border-radius:8px}
-
 input,select{width:100%;padding:13px;margin:6px 0;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 16px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--text);font:inherit;font-weight:700;font-size:14px;cursor:pointer;text-decoration:none}
 .btn:hover{border-color:var(--muted)}
@@ -36,13 +35,11 @@ input,select{width:100%;padding:13px;margin:6px 0;border-radius:10px;border:1px 
 .btn-block{width:100%;margin-top:8px;padding:13px;font-size:15px}
 .message{margin-top:12px;overflow-wrap:anywhere;font-weight:500}
 .error{color:var(--red)}.success{color:var(--green)}
-
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
 .stat{background:var(--bg);padding:14px 16px;border-radius:12px;border:1px solid var(--line)}
 .stat b{display:block;font-size:26px;line-height:1.2}
 .stat small{color:var(--muted)}
 .stat.alert b{color:var(--amber)}
-
 .tools{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center}
 .tools input{margin:0}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:14px 0 4px;-webkit-overflow-scrolling:touch}
@@ -50,7 +47,6 @@ input,select{width:100%;padding:13px;margin:6px 0;border-radius:10px;border:1px 
 .chip b{margin-left:4px;color:var(--muted)}
 .chip.active{background:var(--lime);color:#0a1120;border-color:var(--lime);font-weight:700}
 .chip.active b{color:#0a1120}
-
 .order{--c:var(--line);margin-top:12px;padding:16px;background:var(--bg);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:14px}
 .order.s-pending{--c:var(--amber)}
 .order.s-assigned{--c:var(--blue)}
@@ -65,14 +61,14 @@ input,select{width:100%;padding:13px;margin:6px 0;border-radius:10px;border:1px 
 .info small{display:block;color:var(--muted);font-size:12px}
 .info a{color:var(--lime);text-decoration:none;font-weight:600}
 .info .full{grid-column:1/-1}
+.gps-coords{font-size:12px;color:var(--muted);margin-top:4px}
+.maplinks{display:flex;flex-wrap:wrap;gap:14px;margin-top:6px}
 .actions{display:flex;flex-wrap:wrap;gap:8px}
 .more{margin-top:14px}
-
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:#1d2c47;border:1px solid var(--line);color:var(--text);padding:12px 18px;border-radius:12px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;max-width:90vw}
 #toast.show{opacity:1;transform:translateX(-50%)}
 #toast.ok{border-color:var(--green)}
 #toast.bad{border-color:var(--red)}
-
 @media(max-width:700px){
   body{padding:12px;padding-top:calc(12px + env(safe-area-inset-top,0px))}
   .stats{grid-template-columns:1fr 1fr}
@@ -85,7 +81,6 @@ input,select{width:100%;padding:13px;margin:6px 0;border-radius:10px;border:1px 
 </head>
 <body>
 <div class="container">
-
 <header>
   <div class="logo">MO<span>VA</span> ADMIN</div>
   <div class="who hidden" id="whoBox">
@@ -129,7 +124,6 @@ input,select{width:100%;padding:13px;margin:6px 0;border-radius:10px;border:1px 
     <button id="moreButton" class="btn btn-block more hidden" type="button"></button>
   </div>
 </section>
-
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -138,337 +132,388 @@ var SUPABASE_URL = "https://ujggieewnhzekuphtbmj.supabase.co";
 var SUPABASE_KEY = "sb_publishable_ANjWXcCTlAlJ0UZ5YqgXvQ_SkhErKsf";
 var PAGE_SIZE = 30;
 var POLL_MS = 60000;
-
 var db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 var STATUS = {
-  pending:     { label:"Chờ xử lý",        cls:"s-pending"  },
-  assigned:    { label:"Đã phân tài xế",   cls:"s-assigned" },
-  in_progress: { label:"Đang vận chuyển",  cls:"s-progress" },
-  completed:   { label:"Đã hoàn thành",    cls:"s-done"     },
-  cancelled:   { label:"Đã hủy",           cls:"s-cancel"   }
+  pending:{label:"Chờ xử lý",cls:"s-pending"},
+  assigned:{label:"Đã phân tài xế",cls:"s-assigned"},
+  in_progress:{label:"Đang vận chuyển",cls:"s-progress"},
+  completed:{label:"Đã hoàn thành",cls:"s-done"},
+  cancelled:{label:"Đã hủy",cls:"s-cancel"}
 };
 var NEXT = {
-  pending:     ["assigned","cancelled"],
-  assigned:    ["in_progress","cancelled"],
-  in_progress: ["completed","cancelled"],
-  completed:   [],
-  cancelled:   ["pending"]
+  pending:["assigned","cancelled"],
+  assigned:["in_progress","cancelled"],
+  in_progress:["completed","cancelled"],
+  completed:[],
+  cancelled:["pending"]
 };
 var ACTION = {
-  assigned:"Phân tài xế", in_progress:"Bắt đầu vận chuyển",
-  completed:"Hoàn thành", cancelled:"Hủy đơn", pending:"Mở lại đơn"
+  assigned:"Phân tài xế",
+  in_progress:"Bắt đầu vận chuyển",
+  completed:"Hoàn thành",
+  cancelled:"Hủy đơn",
+  pending:"Mở lại đơn"
 };
 
-var $ = function (id) { return document.getElementById(id); };
+var $ = function(id){return document.getElementById(id);};
 var allOrders = [];
 var filterStatus = "";
 var visibleLimit = PAGE_SIZE;
 var channel = null, pollTimer = null, reloadTimer = null, firstLoadDone = false;
 
-/* ---------- helpers ---------- */
-function esc(v) {
-  return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) {
-    return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+function esc(v){
+  return String(v == null ? "" : v).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
   });
 }
-function setMsg(el, text, type) { el.textContent = text; el.className = "message " + (type || ""); }
+function setMsg(el,text,type){
+  el.textContent = text;
+  el.className = "message " + (type || "");
+}
 var toastTimer;
-function toast(text, type) {
+function toast(text,type){
   var t = $("toast");
   t.textContent = text;
   t.className = "show " + (type || "");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function () { t.className = ""; }, 2800);
+  toastTimer = setTimeout(function(){t.className="";},2800);
 }
-function beep() {
-  try {
+function beep(){
+  try{
     var ctx = new (window.AudioContext || window.webkitAudioContext)();
-    var o = ctx.createOscillator(), g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.frequency.value = 880; g.gain.value = 0.08;
-    o.start(); o.stop(ctx.currentTime + 0.18);
-  } catch (e) {}
+    var o = ctx.createOscillator(),g = ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.frequency.value=880;g.gain.value=0.08;
+    o.start();o.stop(ctx.currentTime+0.18);
+  }catch(e){}
 }
-function fmtDate(v) { return v ? new Date(v).toLocaleString("vi-VN") : "-"; }
-function ago(v) {
-  if (!v) return "";
-  var m = Math.floor((Date.now() - new Date(v).getTime()) / 60000);
-  if (m < 1) return "vừa xong";
-  if (m < 60) return m + " phút trước";
-  var h = Math.floor(m / 60);
-  if (h < 24) return h + " giờ trước";
-  return Math.floor(h / 24) + " ngày trước";
+function fmtDate(v){return v?new Date(v).toLocaleString("vi-VN"):"-";}
+function ago(v){
+  if(!v)return "";
+  var m=Math.floor((Date.now()-new Date(v).getTime())/60000);
+  if(m<1)return "vừa xong";
+  if(m<60)return m+" phút trước";
+  var h=Math.floor(m/60);
+  if(h<24)return h+" giờ trước";
+  return Math.floor(h/24)+" ngày trước";
 }
-function isToday(v) { return v && new Date(v).toDateString() === new Date().toDateString(); }
-function phoneHref(p) { return "tel:" + String(p || "").replace(/[^\d+]/g, ""); }
-function mapHref(a) { return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(a || ""); }
-function viError(msg) {
-  if (/invalid login/i.test(msg)) return "Email hoặc mật khẩu không đúng.";
-  if (/network|fetch/i.test(msg)) return "Lỗi mạng. Vui lòng thử lại.";
-  return msg || "Đăng nhập thất bại.";
+function isToday(v){return v&&new Date(v).toDateString()===new Date().toDateString();}
+function phoneHref(p){return "tel:"+String(p||"").replace(/[^\d+]/g,"");}
+function mapHref(a){
+  return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(a||"");
 }
 
-/* ---------- auth ---------- */
-async function verifyAdmin(user) {
-  var r = await db.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
-  if (r.error) throw new Error("Không thể xác minh quyền quản trị: " + r.error.message);
-  if (!r.data) throw new Error("Tài khoản này không có quyền quản trị MOVA.");
+/* GPS 坐标优先；没有坐标时退回地址搜索 */
+function hasGps(o){
+  return o.pickup_latitude!=null&&o.pickup_longitude!=null&&
+    Number.isFinite(Number(o.pickup_latitude))&&Number.isFinite(Number(o.pickup_longitude));
 }
-async function openDashboard(user) {
+function pickupMapHref(o){
+  if(hasGps(o)){
+    return "https://www.google.com/maps/search/?api=1&query="+
+      encodeURIComponent(o.pickup_latitude+","+o.pickup_longitude);
+  }
+  return mapHref(o.pickup_address);
+}
+function dirHref(o){
+  return "https://www.google.com/maps/dir/?api=1&destination="+
+    encodeURIComponent(o.pickup_latitude+","+o.pickup_longitude);
+}
+function viError(msg){
+  if(/invalid login/i.test(msg))return "Email hoặc mật khẩu không đúng.";
+  if(/network|fetch/i.test(msg))return "Lỗi mạng. Vui lòng thử lại.";
+  return msg||"Đăng nhập thất bại.";
+}
+
+/* 管理员验证 */
+async function verifyAdmin(user){
+  var r=await db.from("admin_users").select("user_id").eq("user_id",user.id).maybeSingle();
+  if(r.error)throw new Error("Không thể xác minh quyền quản trị: "+r.error.message);
+  if(!r.data)throw new Error("Tài khoản này không có quyền quản trị MOVA.");
+}
+async function openDashboard(user){
   await verifyAdmin(user);
   $("loginCard").classList.add("hidden");
   $("dashboard").classList.remove("hidden");
   $("whoBox").classList.remove("hidden");
-  $("whoEmail").textContent = user.email || "";
+  $("whoEmail").textContent=user.email||"";
   await loadOrders();
   startLive();
 }
-function showLogin(msg, type) {
+function showLogin(msg,type){
   stopLive();
-  allOrders = []; firstLoadDone = false;
+  allOrders=[];firstLoadDone=false;
   $("dashboard").classList.add("hidden");
   $("whoBox").classList.add("hidden");
   $("loginCard").classList.remove("hidden");
-  $("password").value = "";
-  document.title = "MOVA Admin";
-  setMsg($("loginMessage"), msg || "", type);
+  $("password").value="";
+  document.title="MOVA Admin";
+  setMsg($("loginMessage"),msg||"",type);
 }
 
-$("loginForm").addEventListener("submit", async function (e) {
+$("loginForm").addEventListener("submit",async function(e){
   e.preventDefault();
-  var btn = $("loginButton");
-  btn.disabled = true; btn.textContent = "Đang đăng nhập...";
-  setMsg($("loginMessage"), "", "");
-  try {
-    var r = await db.auth.signInWithPassword({
-      email: $("email").value.trim(),
-      password: $("password").value
+  var btn=$("loginButton");
+  btn.disabled=true;btn.textContent="Đang đăng nhập...";
+  setMsg($("loginMessage"),"","");
+  try{
+    var r=await db.auth.signInWithPassword({
+      email:$("email").value.trim(),
+      password:$("password").value
     });
-    if (r.error) throw r.error;
+    if(r.error)throw r.error;
     await openDashboard(r.data.user);
-  } catch (err) {
+  }catch(err){
     await db.auth.signOut();
-    showLogin(viError(err.message), "error");
-  } finally {
-    btn.disabled = false; btn.textContent = "Đăng nhập";
+    showLogin(viError(err.message),"error");
+  }finally{
+    btn.disabled=false;btn.textContent="Đăng nhập";
   }
 });
-
-$("logoutButton").addEventListener("click", async function () {
+$("logoutButton").addEventListener("click",async function(){
   await db.auth.signOut();
-  showLogin("Đã đăng xuất.", "success");
+  showLogin("Đã đăng xuất.","success");
 });
-
-db.auth.onAuthStateChange(function (event) {
-  if (event === "SIGNED_OUT" && !$("dashboard").classList.contains("hidden")) {
-    showLogin("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", "error");
+db.auth.onAuthStateChange(function(event){
+  if(event==="SIGNED_OUT"&&!$("dashboard").classList.contains("hidden")){
+    showLogin("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.","error");
   }
 });
 
-/* ---------- data ---------- */
-async function loadOrders(silent) {
-  if (!silent) setMsg($("orderMessage"), "Đang tải đơn hàng...", "muted");
-  var r = await db.from("orders").select("*").order("created_at", { ascending:false }).limit(500);
-  if (r.error) {
-    setMsg($("orderMessage"), "Không thể tải đơn hàng: " + r.error.message, "error");
+/* 订单读取 */
+async function loadOrders(silent){
+  if(!silent)setMsg($("orderMessage"),"Đang tải đơn hàng...","muted");
+  var r=await db.from("orders").select("*").order("created_at",{ascending:false}).limit(500);
+  if(r.error){
+    setMsg($("orderMessage"),"Không thể tải đơn hàng: "+r.error.message,"error");
     return;
   }
-  var oldIds = {};
-  allOrders.forEach(function (o) { oldIds[String(o.id)] = true; });
-  var fresh = (r.data || []).filter(function (o) { return !oldIds[String(o.id)]; });
-
-  allOrders = r.data || [];
-  if (firstLoadDone && fresh.length) {
-    toast("Có " + fresh.length + " đơn mới!", "ok");
+  var oldIds={};
+  allOrders.forEach(function(o){oldIds[String(o.id)]=true;});
+  var fresh=(r.data||[]).filter(function(o){return !oldIds[String(o.id)];});
+  allOrders=r.data||[];
+  if(firstLoadDone&&fresh.length){
+    toast("Có "+fresh.length+" đơn mới!","ok");
     beep();
   }
-  firstLoadDone = true;
+  firstLoadDone=true;
   render();
-  setMsg($("orderMessage"), "", "");
+  setMsg($("orderMessage"),"","");
 }
-function scheduleReload() {
+function scheduleReload(){
   clearTimeout(reloadTimer);
-  reloadTimer = setTimeout(function () { loadOrders(true); }, 400);
+  reloadTimer=setTimeout(function(){loadOrders(true);},400);
 }
 
-/* ---------- live updates ---------- */
-function startLive() {
+/* 实时更新 */
+function startLive(){
   stopLive();
-  try {
-    channel = db.channel("orders-live")
-      .on("postgres_changes", { event:"*", schema:"public", table:"orders" }, scheduleReload)
-      .subscribe(function (s) {
-        if (s === "SUBSCRIBED") $("liveStatus").textContent = "Đang cập nhật trực tiếp.";
+  try{
+    channel=db.channel("orders-live")
+      .on("postgres_changes",{event:"*",schema:"public",table:"orders"},scheduleReload)
+      .subscribe(function(s){
+        if(s==="SUBSCRIBED")$("liveStatus").textContent="Đang cập nhật trực tiếp.";
       });
-  } catch (e) {}
-  $("liveStatus").textContent = "Tự động làm mới mỗi 60 giây.";
-  pollTimer = setInterval(function () { loadOrders(true); }, POLL_MS);
+  }catch(e){}
+  $("liveStatus").textContent="Tự động làm mới mỗi 60 giây.";
+  pollTimer=setInterval(function(){loadOrders(true);},POLL_MS);
 }
-function stopLive() {
-  if (channel) { db.removeChannel(channel); channel = null; }
-  clearInterval(pollTimer); clearTimeout(reloadTimer);
+function stopLive(){
+  if(channel){db.removeChannel(channel);channel=null;}
+  clearInterval(pollTimer);
+  clearTimeout(reloadTimer);
 }
 
-/* ---------- render ---------- */
-function count(status) {
-  return allOrders.filter(function (o) { return o.status === status; }).length;
+/* 订单统计 */
+function count(status){
+  return allOrders.filter(function(o){return o.status===status;}).length;
 }
-function updateStats() {
-  var pending = count("pending");
-  $("pendingCount").textContent = pending;
-  $("activeCount").textContent = count("assigned") + count("in_progress");
-  $("todayCount").textContent = allOrders.filter(function (o) { return isToday(o.created_at); }).length;
-  $("totalCount").textContent = allOrders.length;
-  document.title = (pending ? "(" + pending + ") " : "") + "MOVA Admin";
+function updateStats(){
+  var pending=count("pending");
+  $("pendingCount").textContent=pending;
+  $("activeCount").textContent=count("assigned")+count("in_progress");
+  $("todayCount").textContent=allOrders.filter(function(o){return isToday(o.created_at);}).length;
+  $("totalCount").textContent=allOrders.length;
+  document.title=(pending?"("+pending+") ":"")+"MOVA Admin";
 }
-function renderChips() {
-  var html = '<button class="chip' + (filterStatus === "" ? " active" : "") + '" data-filter="">Tất cả<b>' + allOrders.length + "</b></button>";
-  Object.keys(STATUS).forEach(function (k) {
-    html += '<button class="chip' + (filterStatus === k ? " active" : "") + '" data-filter="' + k + '">' +
-      STATUS[k].label + "<b>" + count(k) + "</b></button>";
+function renderChips(){
+  var html='<button class="chip'+(filterStatus===""?" active":"")+'" data-filter="">Tất cả<b>'+allOrders.length+"</b></button>";
+  Object.keys(STATUS).forEach(function(k){
+    html+='<button class="chip'+(filterStatus===k?" active":"")+'" data-filter="'+k+'">'+
+      STATUS[k].label+"<b>"+count(k)+"</b></button>";
   });
-  $("chips").innerHTML = html;
+  $("chips").innerHTML=html;
 }
-function getFiltered() {
-  var q = $("searchInput").value.trim().toLowerCase();
-  return allOrders.filter(function (o) {
-    if (filterStatus && o.status !== filterStatus) return false;
-    if (!q) return true;
-    return [o.id, o.service_type, o.pickup_address, o.dropoff_address, o.customer_phone, o.note]
-      .join(" ").toLowerCase().indexOf(q) !== -1;
+function getFiltered(){
+  var q=$("searchInput").value.trim().toLowerCase();
+  return allOrders.filter(function(o){
+    if(filterStatus&&o.status!==filterStatus)return false;
+    if(!q)return true;
+    return [o.id,o.service_type,o.pickup_address,o.dropoff_address,o.customer_phone,o.note]
+      .join(" ").toLowerCase().indexOf(q)!==-1;
   });
 }
-function orderHTML(o) {
-  var st = STATUS[o.status] || STATUS.pending;
-  var key = STATUS[o.status] ? o.status : "pending";
-  var id = esc(o.id);
-  var waiting = key === "pending" ? ' · chờ ' + esc(ago(o.created_at).replace(" trước", "")) : "";
-  var btns = (NEXT[key] || []).map(function (n) {
-    var cls = n === "cancelled" ? "btn btn-danger" : (n === "pending" ? "btn" : "btn btn-primary");
-    return '<button type="button" class="' + cls + '" data-act="status" data-id="' + id + '" data-to="' + n + '">' + ACTION[n] + "</button>";
+
+/* 订单卡片 */
+function orderHTML(o){
+  var st=STATUS[o.status]||STATUS.pending;
+  var key=STATUS[o.status]?o.status:"pending";
+  var id=esc(o.id);
+  var waiting=key==="pending"?' · chờ '+esc(ago(o.created_at).replace(" trước","")):"";
+  var btns=(NEXT[key]||[]).map(function(n){
+    var cls=n==="cancelled"?"btn btn-danger":(n==="pending"?"btn":"btn btn-primary");
+    return '<button type="button" class="'+cls+'" data-act="status" data-id="'+id+'" data-to="'+n+'">'+ACTION[n]+"</button>";
   }).join("");
-  return '<article class="order ' + st.cls + '">' +
-    '<div class="order-top"><strong>Đơn #' + id + '</strong><span class="badge">' + esc(st.label) + "</span></div>" +
-    '<div class="time">' + esc(fmtDate(o.created_at)) + " · " + esc(ago(o.created_at)) + waiting + "</div>" +
-    '<div class="info">' +
-      '<div><small>Dịch vụ</small>' + esc(o.service_type) + "</div>" +
-      '<div><small>Số điện thoại</small><a href="' + esc(phoneHref(o.customer_phone)) + '">' + esc(o.customer_phone) + "</a></div>" +
-      '<div><small>Điểm nhận</small>' + esc(o.pickup_address) + ' <a href="' + esc(mapHref(o.pickup_address)) + '" target="_blank" rel="noopener">Bản đồ</a></div>' +
-      '<div><small>Điểm đến</small>' + esc(o.dropoff_address) + ' <a href="' + esc(mapHref(o.dropoff_address)) + '" target="_blank" rel="noopener">Bản đồ</a></div>' +
-      '<div class="full"><small>Ghi chú</small>' + esc(o.note || "-") + "</div>" +
-    "</div>" +
-    '<div class="actions">' + btns +
-      '<button type="button" class="btn" data-act="copy" data-id="' + id + '">Sao chép đơn</button>' +
+
+  var gps=hasGps(o);
+  var pickupLinks=gps
+    ? '<div class="gps-coords">GPS: '+esc(o.pickup_latitude)+', '+esc(o.pickup_longitude)+'</div>'+
+      '<div class="maplinks"><a href="'+esc(pickupMapHref(o))+'" target="_blank" rel="noopener">📍 Xem vị trí</a>'+
+      '<a href="'+esc(dirHref(o))+'" target="_blank" rel="noopener">🧭 Dẫn đường</a></div>'
+    : '<div class="maplinks"><a href="'+esc(mapHref(o.pickup_address))+'" target="_blank" rel="noopener">Bản đồ</a></div>';
+
+  return '<article class="order '+st.cls+'">'+
+    '<div class="order-top"><strong>Đơn #'+id+'</strong><span class="badge">'+esc(st.label)+"</span></div>"+
+    '<div class="time">'+esc(fmtDate(o.created_at))+" · "+esc(ago(o.created_at))+waiting+"</div>"+
+    '<div class="info">'+
+      '<div><small>Dịch vụ</small>'+esc(o.service_type)+"</div>"+
+      '<div><small>Số điện thoại</small><a href="'+esc(phoneHref(o.customer_phone))+'">'+esc(o.customer_phone)+"</a></div>"+
+      '<div><small>Điểm nhận</small>'+esc(o.pickup_address)+pickupLinks+'</div>'+
+      '<div><small>Điểm đến</small>'+esc(o.dropoff_address)+' <a href="'+esc(mapHref(o.dropoff_address))+'" target="_blank" rel="noopener">Bản đồ</a></div>'+
+      '<div class="full"><small>Ghi chú</small>'+esc(o.note||"-")+"</div>"+
+    "</div>"+
+    '<div class="actions">'+btns+
+      '<button type="button" class="btn" data-act="copy" data-id="'+id+'">Sao chép đơn</button>'+
     "</div></article>";
 }
-function render() {
+function render(){
   updateStats();
   renderChips();
-  var list = getFiltered();
-  var shown = list.slice(0, visibleLimit);
-  $("ordersList").innerHTML = shown.length
-    ? shown.map(orderHTML).join("")
-    : '<p class="muted">Không tìm thấy đơn hàng.</p>';
-  var more = $("moreButton");
-  if (list.length > shown.length) {
-    more.textContent = "Xem thêm (" + (list.length - shown.length) + " đơn)";
+  var list=getFiltered();
+  var shown=list.slice(0,visibleLimit);
+  $("ordersList").innerHTML=shown.length?shown.map(orderHTML).join(""):'<p class="muted">Không tìm thấy đơn hàng.</p>';
+  var more=$("moreButton");
+  if(list.length>shown.length){
+    more.textContent="Xem thêm ("+(list.length-shown.length)+" đơn)";
     more.classList.remove("hidden");
-  } else {
+  }else{
     more.classList.add("hidden");
   }
 }
 
-/* ---------- actions ---------- */
-function findOrder(id) {
-  return allOrders.find(function (o) { return String(o.id) === String(id); });
+/* 修改订单状态 */
+function findOrder(id){
+  return allOrders.find(function(o){return String(o.id)===String(id);});
 }
-async function changeStatus(id, to) {
-  var order = findOrder(id);
-  if (!order || order.status === to) return;
-  if (to === "cancelled" && !confirm("Hủy đơn #" + order.id + "?")) return;
-
-  var prev = order.status;
-  order.status = to;           // cập nhật ngay trên giao diện
+async function changeStatus(id,to){
+  var order=findOrder(id);
+  if(!order||order.status===to)return;
+  if(to==="cancelled"&&!confirm("Hủy đơn #"+order.id+"?"))return;
+  var prev=order.status;
+  order.status=to;
   render();
-
-  var r = await db.from("orders").update({ status: to }).eq("id", order.id).select("id");
-  if (r.error || !r.data || !r.data.length) {
-    order.status = prev;       // thất bại thì khôi phục
+  var r=await db.from("orders").update({status:to}).eq("id",order.id).select("id");
+  if(r.error||!r.data||!r.data.length){
+    order.status=prev;
     render();
-    toast(r.error ? "Cập nhật thất bại: " + r.error.message : "Không có quyền cập nhật đơn này.", "bad");
+    toast(r.error?"Cập nhật thất bại: "+r.error.message:"Không có quyền cập nhật đơn này.","bad");
     return;
   }
-  toast("Đã chuyển sang: " + STATUS[to].label, "ok");
-}
-async function copyOrder(id) {
-  var o = findOrder(id);
-  if (!o) return;
-  var text = [
-    "MOVA - Đơn #" + o.id,
-    "Dịch vụ: " + o.service_type,
-    "SĐT: " + o.customer_phone,
-    "Điểm nhận: " + o.pickup_address,
-    "Điểm đến: " + o.dropoff_address,
-    "Ghi chú: " + (o.note || "-")
-  ].join("\n");
-  try { await navigator.clipboard.writeText(text); toast("Đã sao chép đơn hàng.", "ok"); }
-  catch (e) { toast("Không sao chép được. Hãy thử lại.", "bad"); }
-}
-function csvCell(v) {
-  var s = String(v == null ? "" : v);
-  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;      // chống chèn công thức Excel
-  return '"' + s.replace(/"/g, '""') + '"';
-}
-function exportCSV() {
-  var rows = getFiltered();
-  if (!rows.length) { toast("Không có đơn để xuất.", "bad"); return; }
-  var lines = [["ID","Thời gian","Dịch vụ","Số điện thoại","Điểm nhận","Điểm đến","Ghi chú","Trạng thái"]
-    .map(csvCell).join(",")];
-  rows.forEach(function (o) {
-    lines.push([o.id, fmtDate(o.created_at), o.service_type, o.customer_phone,
-      o.pickup_address, o.dropoff_address, o.note,
-      (STATUS[o.status] || {}).label || o.status].map(csvCell).join(","));
-  });
-  var blob = new Blob(["\ufeff" + lines.join("\r\n")], { type:"text/csv;charset=utf-8" });
-  var a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "mova-orders-" + new Date().toISOString().slice(0, 10) + ".csv";
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  toast("Đã chuyển sang: "+STATUS[to].label,"ok");
 }
 
-/* ---------- events ---------- */
-$("ordersList").addEventListener("click", function (e) {
-  var b = e.target.closest("[data-act]");
-  if (!b) return;
-  if (b.dataset.act === "status") changeStatus(b.dataset.id, b.dataset.to);
-  if (b.dataset.act === "copy") copyOrder(b.dataset.id);
+/* 复制订单（带可点击的地图链接，方便转发给司机） */
+async function copyOrder(id){
+  var o=findOrder(id);
+  if(!o)return;
+  var gps=hasGps(o);
+  var mapLink=gps
+    ? "https://www.google.com/maps?q="+o.pickup_latitude+","+o.pickup_longitude
+    : mapHref(o.pickup_address);
+  var text=[
+    "MOVA - Đơn #"+o.id,
+    "Dịch vụ: "+o.service_type,
+    "SĐT: "+o.customer_phone,
+    "Điểm nhận: "+o.pickup_address,
+    (gps?"Vị trí GPS: ":"Bản đồ: ")+mapLink,
+    "Điểm đến: "+o.dropoff_address,
+    "Ghi chú: "+(o.note||"-")
+  ].join("\n");
+  try{
+    await navigator.clipboard.writeText(text);
+    toast("Đã sao chép đơn hàng.","ok");
+  }catch(e){
+    toast("Không sao chép được. Hãy thử lại.","bad");
+  }
+}
+
+/* CSV 导出 */
+function csvCell(v){
+  var s=String(v==null?"":v);
+  if(/^[=+\-@\t\r]/.test(s))s="'"+s;
+  return '"'+s.replace(/"/g,'""')+'"';
+}
+function exportCSV(){
+  var rows=getFiltered();
+  if(!rows.length){toast("Không có đơn để xuất.","bad");return;}
+  var lines=[["ID","Thời gian","Dịch vụ","Số điện thoại","Điểm nhận","Vĩ độ","Kinh độ","Điểm đến","Ghi chú","Trạng thái"].map(csvCell).join(",")];
+  rows.forEach(function(o){
+    lines.push([
+      o.id,fmtDate(o.created_at),o.service_type,o.customer_phone,
+      o.pickup_address,o.pickup_latitude,o.pickup_longitude,
+      o.dropoff_address,o.note,(STATUS[o.status]||{}).label||o.status
+    ].map(csvCell).join(","));
+  });
+  var blob=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="mova-orders-"+new Date().toISOString().slice(0,10)+".csv";
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+
+/* 按钮事件 */
+$("ordersList").addEventListener("click",function(e){
+  var b=e.target.closest("[data-act]");
+  if(!b)return;
+  if(b.dataset.act==="status")changeStatus(b.dataset.id,b.dataset.to);
+  if(b.dataset.act==="copy")copyOrder(b.dataset.id);
 });
-$("chips").addEventListener("click", function (e) {
-  var c = e.target.closest("[data-filter]");
-  if (!c) return;
-  filterStatus = c.dataset.filter;
-  visibleLimit = PAGE_SIZE;
+$("chips").addEventListener("click",function(e){
+  var c=e.target.closest("[data-filter]");
+  if(!c)return;
+  filterStatus=c.dataset.filter;
+  visibleLimit=PAGE_SIZE;
   render();
 });
-$("searchInput").addEventListener("input", function () { visibleLimit = PAGE_SIZE; render(); });
-$("moreButton").addEventListener("click", function () { visibleLimit += PAGE_SIZE; render(); });
-$("refreshButton").addEventListener("click", async function () {
-  var b = $("refreshButton");
-  b.disabled = true;
-  await loadOrders();
-  b.disabled = false;
-  toast("Đã làm mới.", "ok");
+$("searchInput").addEventListener("input",function(){
+  visibleLimit=PAGE_SIZE;
+  render();
 });
-$("exportButton").addEventListener("click", exportCSV);
+$("moreButton").addEventListener("click",function(){
+  visibleLimit+=PAGE_SIZE;
+  render();
+});
+$("refreshButton").addEventListener("click",async function(){
+  var b=$("refreshButton");
+  b.disabled=true;
+  await loadOrders();
+  b.disabled=false;
+  toast("Đã làm mới.","ok");
+});
+$("exportButton").addEventListener("click",exportCSV);
 
-/* ---------- khởi động ---------- */
-(async function init() {
-  var r = await db.auth.getSession();
-  if (r.error || !r.data.session) return;
-  try { await openDashboard(r.data.session.user); }
-  catch (err) { await db.auth.signOut(); showLogin(err.message, "error"); }
+/* 启动 */
+(async function init(){
+  var r=await db.auth.getSession();
+  if(r.error||!r.data.session)return;
+  try{
+    await openDashboard(r.data.session.user);
+  }catch(err){
+    await db.auth.signOut();
+    showLogin(err.message,"error");
+  }
 })();
 </script>
 </body>
