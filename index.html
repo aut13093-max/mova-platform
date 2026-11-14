@@ -6,60 +6,54 @@
 <meta name="theme-color" content="#0a1120">
 <title>MOVA - Move Easy, Move Smart</title>
 <meta name="description" content="MOVA kết nối khách hàng với tài xế xe máy và xe tải nhỏ tại Việt Nam.">
-<meta property="og:title" content="MOVA - Move Easy, Move Smart">
-<meta property="og:description" content="Đặt xe máy, giao hàng và xe tải nhỏ trên một nền tảng.">
-<meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏍️%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --bg:#f4f6ef;--surface:#ffffff;--ink:#0e1a2c;--muted:#55627a;--line:#d8dece;
-  --lime:#c7f36b;--on-lime:#0e1a2c;--accent:#3d6600;--navy:#0e1a2c;
-  --ok:#1f6b2c;--err:#b3261e;
+  --bg:#f4f6ef;--surface:#fff;--ink:#0e1a2c;--muted:#55627a;
+  --line:#d8dece;--lime:#c7f36b;--accent:#3d6600;
+  --navy:#0e1a2c;--ok:#1f6b2c;--err:#b3261e;
   --font:"Be Vietnam Pro","Segoe UI",Roboto,Arial,sans-serif;
-  box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px);
-  padding-bottom:env(safe-area-inset-bottom,0px);
 }
-@media (prefers-color-scheme: dark){
+@media(prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    color-scheme:dark;
-    --bg:#0a1120;--surface:#121d31;--ink:#f2f5ee;--muted:#9aa8bf;--line:#25344d;--accent:#c7f36b;
-    --ok:#7ee08a;--err:#ff8f86;
+    color-scheme:dark;--bg:#0a1120;--surface:#121d31;
+    --ink:#f2f5ee;--muted:#9aa8bf;--line:#25344d;
+    --accent:#c7f36b;--ok:#7ee08a;--err:#ff8f86;
   }
 }
 :root[data-theme="dark"]{
-  color-scheme:dark;
-  --bg:#0a1120;--surface:#121d31;--ink:#f2f5ee;--muted:#9aa8bf;--line:#25344d;--accent:#c7f36b;
-  --ok:#7ee08a;--err:#ff8f86;
+  color-scheme:dark;--bg:#0a1120;--surface:#121d31;
+  --ink:#f2f5ee;--muted:#9aa8bf;--line:#25344d;
+  --accent:#c7f36b;--ok:#7ee08a;--err:#ff8f86;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;scroll-padding-top:env(safe-area-inset-top,0px)}
-body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.6}
 a{color:inherit}
+button,input,select,textarea{font:inherit}
 :focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
-.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.wrap{max-width:1120px;margin:auto;padding:0 24px}
 
 header{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
 .logo{font-size:28px;font-weight:800;letter-spacing:.06em;text-decoration:none}
-.logo i{font-style:normal;background:var(--lime);color:var(--on-lime);padding:0 6px;border-radius:7px;margin-left:2px}
+.logo i{font-style:normal;background:var(--lime);color:#0e1a2c;padding:0 6px;border-radius:7px}
 nav{display:flex;align-items:center;gap:20px}
 nav a{text-decoration:none;color:var(--muted);font-weight:500;font-size:15px}
-nav a:hover{color:var(--ink)}
 
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:12px;font-weight:700;font-size:16px;text-decoration:none;border:2px solid transparent;transition:transform .15s,background .15s}
-.btn:hover{transform:translateY(-2px)}
-.btn-primary{background:var(--lime);color:var(--on-lime)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+padding:14px 24px;border-radius:12px;font-weight:700;font-size:16px;
+text-decoration:none;border:2px solid transparent;cursor:pointer}
+.btn-primary{background:var(--lime);color:#0e1a2c}
 .btn-ghost{border-color:var(--line);color:var(--ink);background:var(--surface)}
 .btn-sm{padding:10px 18px;font-size:14px}
-nav .btn-primary{color:var(--on-lime)}
+button:disabled{opacity:.6;cursor:not-allowed}
 
 .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;padding:56px 0 40px}
 .kicker{display:inline-block;font-weight:700;font-size:14px;color:var(--accent);margin-bottom:18px}
-h1{font-size:clamp(38px,6.2vw,66px);line-height:1.08;font-weight:800;letter-spacing:-.02em}
+h1{font-size:clamp(38px,6.2vw,66px);line-height:1.08;font-weight:800}
 h1 em{font-style:normal;color:var(--accent);display:block}
 .lead{margin-top:22px;max-width:46ch;font-size:18px;color:var(--muted)}
 .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
@@ -90,14 +84,14 @@ legend,.field>label{display:block;font-weight:700;margin-bottom:10px}
 .svc{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .opt{position:relative;display:block}
 .opt input{position:absolute;opacity:0;inset:0;cursor:pointer}
-.opt span{display:flex;flex-direction:column;gap:2px;height:100%;padding:16px 18px;border:2px solid var(--line);border-radius:16px;background:var(--bg);font-weight:700;transition:border-color .15s,background .15s}
+.opt span{display:flex;flex-direction:column;gap:2px;height:100%;padding:16px 18px;border:2px solid var(--line);border-radius:16px;background:var(--bg);font-weight:700}
 .opt small{font-weight:500;color:var(--muted);font-size:14px}
-.opt input:checked+span{border-color:var(--accent);background:var(--lime);color:var(--on-lime)}
-.opt input:checked+span small{color:var(--on-lime);opacity:.8}
+.opt input:checked+span{border-color:var(--accent);background:var(--lime);color:#0e1a2c}
+.opt input:checked+span small{color:#0e1a2c;opacity:.8}
 .opt input:focus-visible+span{outline:3px solid var(--accent);outline-offset:3px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .full{grid-column:1/-1}
-.booking input[type=text],.booking input[type=tel],.booking select,.booking textarea{width:100%;min-height:52px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:inherit}
+.booking input[type=text],.booking input[type=tel],.booking input[type=number],.booking select,.booking textarea{width:100%;min-height:52px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:inherit}
 .booking textarea{min-height:100px;resize:vertical}
 .booking input:focus,.booking select:focus,.booking textarea:focus{outline:2px solid var(--accent);outline-offset:2px}
 .hint{font-size:13px;color:var(--muted);margin-top:8px;overflow-wrap:anywhere}
@@ -113,6 +107,21 @@ legend,.field>label{display:block;font-weight:700;margin-bottom:10px}
 #bookingMessage.error{color:var(--err)}
 [hidden]{display:none!important}
 
+/* 报价 */
+.quote-box{background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:20px}
+.quote-box h3{font-size:20px;margin-bottom:12px}
+.quote-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.quote-item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.quote-item span{display:block;font-size:13px;color:var(--muted)}
+.quote-item b{font-size:19px}
+.quote-total{margin-top:14px;padding:18px;background:var(--navy);color:#fff;border-radius:14px}
+.quote-total span{display:block;color:#c4d0df;font-size:14px}
+.quote-total strong{font-size:30px;color:var(--lime)}
+.quote-expiry{font-size:13px;color:var(--muted);margin-top:10px}
+.confirm-row{display:flex;align-items:flex-start;gap:10px;margin-top:14px}
+.confirm-row input{width:20px;height:20px;flex:none;margin-top:3px}
+.confirm-row label{font-size:14px}
+
 .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:36px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:30px}
 .tile.s3{grid-column:span 3}
@@ -125,9 +134,8 @@ legend,.field>label{display:block;font-weight:700;margin-bottom:10px}
 .chips span{padding:10px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.22);font-weight:700;font-size:15px}
 .chips span:nth-child(5){background:var(--lime);color:#0e1a2c;border-color:var(--lime)}
 
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;counter-reset:s}
-.step{padding:26px 0 0;border-top:3px solid var(--ink);counter-increment:s}
-.step::before{content:counter(s);display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--lime);color:var(--on-lime);font-weight:800;margin-bottom:14px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
+.step{padding:26px 0 0;border-top:3px solid var(--ink)}
 .step h3{font-size:19px;margin-bottom:6px}
 .step p{color:var(--muted)}
 
@@ -136,14 +144,14 @@ legend,.field>label{display:block;font-weight:700;margin-bottom:10px}
 .city svg{flex:none;width:30px;height:30px;color:var(--accent)}
 .city small{display:block;font-weight:500;color:var(--muted);font-size:14px}
 
-.join{margin-top:84px;background:var(--lime);color:var(--on-lime);border-radius:32px;padding:56px;display:grid;grid-template-columns:1.2fr .8fr;gap:32px;align-items:center}
+.join{margin-top:84px;background:var(--lime);color:#0e1a2c;border-radius:32px;padding:56px;display:grid;grid-template-columns:1.2fr .8fr;gap:32px;align-items:center}
 .join h2{max-width:16ch}
 .join p{margin-top:12px;max-width:48ch;opacity:.8}
 .join .btn{background:var(--navy);color:#f2f5ee;justify-self:end}
 
 footer{margin-top:72px;padding:28px 0 36px;border-top:1px solid var(--line);color:var(--muted);font-size:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
 
-@media (max-width:820px){
+@media(max-width:820px){
   nav{gap:8px}
   nav a:not(.nav-booking){display:none}
   .hero{grid-template-columns:1fr;gap:36px;padding-top:28px}
@@ -157,7 +165,10 @@ footer{margin-top:72px;padding:28px 0 36px;border-top:1px solid var(--line);colo
   .block{padding-top:64px}
   .booking{padding:26px 18px;margin-top:56px}
 }
-@media (prefers-reduced-motion:reduce){
+@media(max-width:420px){
+  .quote-grid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
   .btn,.opt span{transition:none}
   html{scroll-behavior:auto}
 }
@@ -191,7 +202,7 @@ footer{margin-top:72px;padding:28px 0 36px;border-top:1px solid var(--line);colo
   </div>
 
   <div class="route" aria-hidden="true">
-    <svg viewBox="0 0 400 380" role="img">
+    <svg viewBox="0 0 400 380">
       <g stroke="#ffffff" stroke-opacity=".07" stroke-width="1">
         <path d="M0 70H400M0 150H400M0 230H400M0 310H400M70 0V380M150 0V380M230 0V380M310 0V380"/>
       </g>
@@ -223,15 +234,25 @@ footer{margin-top:72px;padding:28px 0 36px;border-top:1px solid var(--line);colo
 
 <section class="booking" id="dat-xe">
   <h2>Đặt dịch vụ MOVA</h2>
-  <p class="sub">Điền thông tin, MOVA sẽ gọi lại xác nhận đơn của bạn.</p>
+  <p class="sub">Nhập thông tin chuyến đi, xem giá trước khi xác nhận đơn.</p>
 
   <form id="movaBookingForm" novalidate>
+
     <fieldset>
       <legend>Chọn dịch vụ *</legend>
       <div class="svc">
-        <label class="opt"><input type="radio" name="svc" value="MOVA Bike" required><span>🏍️ MOVA Bike<small>Chở khách</small></span></label>
-        <label class="opt"><input type="radio" name="svc" value="MOVA Delivery"><span>📦 MOVA Delivery<small>Giao tài liệu, bưu kiện</small></span></label>
-        <label class="opt"><input type="radio" name="svc" value="MOVA Truck"><span>🚚 MOVA Truck<small>Xe tải nhỏ</small></span></label>
+        <label class="opt">
+          <input type="radio" name="svc" value="MOVA Bike">
+          <span>🏍️ MOVA Bike<small>Chở khách</small></span>
+        </label>
+        <label class="opt">
+          <input type="radio" name="svc" value="MOVA Delivery">
+          <span>📦 MOVA Delivery<small>Giao tài liệu, bưu kiện</small></span>
+        </label>
+        <label class="opt">
+          <input type="radio" name="svc" value="MOVA Truck">
+          <span>🚚 MOVA Truck<small>Xe tải nhỏ</small></span>
+        </label>
       </div>
     </fieldset>
 
@@ -244,6 +265,12 @@ footer{margin-top:72px;padding:28px 0 36px;border-top:1px solid var(--line);colo
         <option value="2 tấn">2 tấn</option>
         <option value="2,5 tấn">2,5 tấn</option>
       </select>
+    </div>
+
+    <div class="field">
+      <label for="distanceKm">Quãng đường dự kiến (km) *</label>
+      <input id="distanceKm" type="number" min="0.1" max="500" step="0.1" inputmode="decimal" placeholder="Ví dụ: 10">
+      <p class="hint">Hiện tại khách nhập số km thủ công. Chưa kết nối Google Maps.</p>
     </div>
 
     <div class="field">
@@ -281,34 +308,73 @@ footer{margin-top:72px;padding:28px 0 36px;border-top:1px solid var(--line);colo
       <label>Website <input id="website" type="text" tabindex="-1" autocomplete="off"></label>
     </div>
 
+    <div class="field">
+      <button class="btn btn-ghost" id="quoteButton" type="button">Tính giá chuyến đi</button>
+    </div>
+
+    <div id="quotePanel" class="quote-box" hidden>
+      <h3>Báo giá MOVA</h3>
+
+      <div class="quote-grid">
+        <div class="quote-item">
+          <span>Giá gốc</span>
+          <b id="quoteOriginal">0đ</b>
+        </div>
+        <div class="quote-item">
+          <span>Ưu đãi 5%</span>
+          <b id="quoteDiscount">0đ</b>
+        </div>
+      </div>
+
+      <div class="quote-total">
+        <span>Khách thanh toán</span>
+        <strong id="quoteCustomer">0đ</strong>
+      </div>
+
+      <p class="quote-expiry" id="quoteExpiry">Báo giá có hiệu lực trong 15 phút.</p>
+
+      <div class="confirm-row">
+        <input type="checkbox" id="confirmQuote">
+        <label for="confirmQuote">Tôi đã kiểm tra thông tin chuyến đi và đồng ý với giá hiển thị.</label>
+      </div>
+    </div>
+
     <div>
-      <button class="btn btn-primary" id="bookingButton" type="submit">Gửi đơn đặt dịch vụ</button>
+      <button class="btn btn-primary" id="bookingButton" type="submit" disabled>
+        Xác nhận và đặt chuyến
+      </button>
       <p id="bookingMessage" role="status" aria-live="polite"></p>
     </div>
+
   </form>
 </section>
 
 <section class="block" id="dich-vu">
   <h2>Một nền tảng, nhiều giải pháp</h2>
   <p class="sub">Chọn phương tiện phù hợp với nhu cầu của bạn.</p>
+
   <div class="bento">
     <article class="tile s3">
       <div class="ico">🏍️</div>
       <h3>MOVA Bike</h3>
       <p>Đặt xe máy chở khách nhanh chóng trong khu vực thành phố.</p>
     </article>
+
     <article class="tile s3">
       <div class="ico">📦</div>
       <h3>MOVA Delivery</h3>
       <p>Gửi tài liệu, bưu kiện và hàng hóa nhỏ bằng xe máy.</p>
     </article>
+
     <article class="tile s6">
       <div>
         <div class="ico">🚚</div>
         <h3>MOVA Truck</h3>
         <p>Vận chuyển bằng xe tải nhỏ, chọn đúng tải trọng cho chuyến hàng của bạn.</p>
       </div>
-      <div class="chips"><span>500kg</span><span>1 tấn</span><span>1,5 tấn</span><span>2 tấn</span><span>2,5 tấn</span></div>
+      <div class="chips">
+        <span>500kg</span><span>1 tấn</span><span>1,5 tấn</span><span>2 tấn</span><span>2,5 tấn</span>
+      </div>
     </article>
   </div>
 </section>
@@ -317,8 +383,8 @@ footer{margin-top:72px;padding:28px 0 36px;border-top:1px solid var(--line);colo
   <h2>Đặt xe trong ba bước</h2>
   <div class="steps">
     <div class="step"><h3>Chọn dịch vụ</h3><p>Xe máy, giao hàng hoặc xe tải.</p></div>
+    <div class="step"><h3>Xem và xác nhận giá</h3><p>Kiểm tra báo giá trước khi gửi đơn.</p></div>
     <div class="step"><h3>MOVA tiếp nhận đơn</h3><p>Quản trị viên kiểm tra và sắp xếp tài xế.</p></div>
-    <div class="step"><h3>Đến nơi an toàn</h3><p>Người hoặc hàng đến đúng điểm cần đến.</p></div>
   </div>
 </section>
 
@@ -326,9 +392,18 @@ footer{margin-top:72px;padding:28px 0 36px;border-top:1px solid var(--line);colo
   <h2>Bắt đầu tại miền Nam Việt Nam</h2>
   <p class="sub">MOVA dự kiến triển khai giai đoạn đầu tại:</p>
   <div class="cities">
-    <div class="city"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><div>TP. Hồ Chí Minh<small>Giai đoạn đầu</small></div></div>
-    <div class="city"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><div>Bình Dương<small>Giai đoạn đầu</small></div></div>
-    <div class="city"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><div>Đồng Nai<small>Giai đoạn đầu</small></div></div>
+    <div class="city">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+      <div>TP. Hồ Chí Minh<small>Giai đoạn đầu</small></div>
+    </div>
+    <div class="city">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+      <div>Bình Dương<small>Giai đoạn đầu</small></div>
+    </div>
+    <div class="city">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+      <div>Đồng Nai<small>Giai đoạn đầu</small></div>
+    </div>
   </div>
 </section>
 
@@ -351,19 +426,28 @@ footer{margin-top:72px;padding:28px 0 36px;border-top:1px solid var(--line);colo
 
 <script>
 if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) {
-  document.querySelectorAll("animateMotion").forEach(function (n) { n.remove(); });
+  document.querySelectorAll("animateMotion").forEach(function(n){n.remove();});
 }
 
+/* Supabase */
 var MOVA_SUPABASE_URL = "https://ujggieewnhzekuphtbmj.supabase.co";
 var MOVA_SUPABASE_KEY = "sb_publishable_ANjWXcCTlAlJ0UZ5YqgXvQ_SkhErKsf";
+
 var COOLDOWN_MS = 30000;
+var QUOTE_VALID_MS = 15 * 60 * 1000;
 var AUTO_PICKUP_TEXT = "Vị trí GPS hiện tại";
 var DEFAULT_HINT = "Vị trí chỉ dùng để tài xế tìm đúng điểm đón. Nên ghi thêm số nhà, tên hẻm.";
 
 var form = document.getElementById("movaBookingForm");
 var button = document.getElementById("bookingButton");
+var quoteButton = document.getElementById("quoteButton");
 var message = document.getElementById("bookingMessage");
 var weightField = document.getElementById("weightField");
+var weightInput = document.getElementById("weight");
+var distanceInput = document.getElementById("distanceKm");
+var quotePanel = document.getElementById("quotePanel");
+var confirmCheckbox = document.getElementById("confirmQuote");
+
 var pickupInput = document.getElementById("pickup");
 var locateButton = document.getElementById("locateButton");
 var clearLocButton = document.getElementById("clearLocButton");
@@ -372,30 +456,90 @@ var locationMessage = document.getElementById("locationMessage");
 var pickupLatitude = null;
 var pickupLongitude = null;
 var autoFilled = false;
+var currentQuote = null;
 
-function show(type, text) {
-  message.className = type;
-  message.textContent = text;
+function show(type,text){
+  message.className = type || "";
+  message.textContent = text || "";
 }
 
-function normalizePhone(v) {
-  var p = v.replace(/[\s.\-()]/g, "");
-  if (/^\+?84\d{9,10}$/.test(p)) p = "0" + p.replace(/^\+?84/, "");
+function formatVND(value){
+  return Number(value || 0).toLocaleString("vi-VN") + "đ";
+}
+
+function normalizePhone(value){
+  var p = value.replace(/[\s.\-()]/g,"");
+  if (/^\+?84\d{9,10}$/.test(p)) {
+    p = "0" + p.replace(/^\+?84/,"");
+  }
   return p;
 }
 
-function validPhone(v) {
-  return /^0\d{9,10}$/.test(v);
+function validPhone(value){
+  return /^0\d{9,10}$/.test(value);
 }
 
-function mapUrl(lat, lng) {
+function mapUrl(lat,lng){
   return "https://www.google.com/maps?q=" + lat + "," + lng;
 }
 
-/* ---------- Định vị GPS ---------- */
-function setLoc(type, text, url) {
+/* 获取服务代码 */
+function getServiceCode(){
+  var selected = form.querySelector('input[name="svc"]:checked');
+  if (!selected) return null;
+
+  if (selected.value === "MOVA Bike") return "BIKE";
+  if (selected.value === "MOVA Delivery") return "DELIVERY";
+
+  if (selected.value === "MOVA Truck") {
+    var codes = {
+      "500kg":"TRUCK_500KG",
+      "1 tấn":"TRUCK_1T",
+      "1,5 tấn":"TRUCK_1_5T",
+      "2 tấn":"TRUCK_2T",
+      "2,5 tấn":"TRUCK_2_5T"
+    };
+    return codes[weightInput.value] || null;
+  }
+
+  return null;
+}
+
+/* 报价失效 */
+function invalidateQuote(){
+  currentQuote = null;
+  quotePanel.hidden = true;
+  confirmCheckbox.checked = false;
+  button.disabled = true;
+}
+
+/* 显示报价 */
+function displayQuote(q){
+  document.getElementById("quoteOriginal").textContent =
+    formatVND(q.original_fare_vnd);
+
+  document.getElementById("quoteDiscount").textContent =
+    "-" + formatVND(q.discount_vnd);
+
+  document.getElementById("quoteCustomer").textContent =
+    formatVND(q.customer_fare_vnd);
+
+  var expiry = new Date(q.quote_expires_at);
+
+  document.getElementById("quoteExpiry").textContent =
+    "Báo giá có hiệu lực đến " +
+    expiry.toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"}) +
+    ". Vui lòng xác nhận trước thời gian này.";
+
+  quotePanel.hidden = false;
+}
+
+/* ---------- GPS ---------- */
+
+function setLoc(type,text,url){
   locationMessage.className = "hint" + (type ? " " + type : "");
   locationMessage.textContent = text;
+
   if (url) {
     locationMessage.appendChild(document.createTextNode(" "));
     var a = document.createElement("a");
@@ -407,29 +551,34 @@ function setLoc(type, text, url) {
   }
 }
 
-function clearLocation() {
+function clearLocation(){
   pickupLatitude = null;
   pickupLongitude = null;
   clearLocButton.hidden = true;
   locateButton.textContent = "📍 Dùng vị trí hiện tại";
-  if (autoFilled && pickupInput.value === AUTO_PICKUP_TEXT) pickupInput.value = "";
+
+  if (autoFilled && pickupInput.value === AUTO_PICKUP_TEXT) {
+    pickupInput.value = "";
+  }
+
   autoFilled = false;
-  setLoc("", DEFAULT_HINT);
+  setLoc("",DEFAULT_HINT);
 }
 
-function getPosition(highAccuracy, timeout, maxAge) {
-  return new Promise(function (resolve, reject) {
-    navigator.geolocation.getCurrentPosition(resolve, reject, {
-      enableHighAccuracy: highAccuracy,
-      timeout: timeout,
-      maximumAge: maxAge
+function getPosition(highAccuracy,timeout,maxAge){
+  return new Promise(function(resolve,reject){
+    navigator.geolocation.getCurrentPosition(resolve,reject,{
+      enableHighAccuracy:highAccuracy,
+      timeout:timeout,
+      maximumAge:maxAge
     });
   });
 }
 
-function onPosition(position) {
+function onPosition(position){
   pickupLatitude = Math.round(position.coords.latitude * 1e6) / 1e6;
   pickupLongitude = Math.round(position.coords.longitude * 1e6) / 1e6;
+
   var accuracy = Math.round(position.coords.accuracy || 0);
 
   if (!pickupInput.value.trim()) {
@@ -441,89 +590,229 @@ function onPosition(position) {
   locateButton.textContent = "📍 Định vị lại";
 
   if (accuracy > 150) {
-    setLoc("error", "Đã lấy vị trí nhưng độ chính xác thấp (khoảng " + accuracy + " m). Hãy ghi thêm địa chỉ cụ thể.", mapUrl(pickupLatitude, pickupLongitude));
+    setLoc("error",
+      "Đã lấy vị trí nhưng độ chính xác thấp (khoảng " + accuracy + " m). Hãy ghi thêm địa chỉ cụ thể.",
+      mapUrl(pickupLatitude,pickupLongitude));
   } else {
-    setLoc("success", "Đã gắn vị trí của bạn" + (accuracy ? " (khoảng " + accuracy + " m)" : "") + ".", mapUrl(pickupLatitude, pickupLongitude));
+    setLoc("success",
+      "Đã gắn vị trí của bạn" + (accuracy ? " (khoảng " + accuracy + " m)" : "") + ".",
+      mapUrl(pickupLatitude,pickupLongitude));
   }
 }
 
-function onLocateError(error) {
+function onLocateError(error){
   pickupLatitude = null;
   pickupLongitude = null;
   clearLocButton.hidden = true;
 
   var text;
+
   if (error && error.code === 1) {
-    text = "Bạn chưa cho phép truy cập vị trí. Hãy bật quyền Vị trí cho trình duyệt trong Cài đặt rồi thử lại, hoặc nhập địa chỉ thủ công.";
+    text = "Bạn chưa cho phép truy cập vị trí. Hãy bật quyền Vị trí cho trình duyệt hoặc nhập địa chỉ thủ công.";
   } else if (error && error.code === 2) {
     text = "Không xác định được vị trí. Hãy bật GPS trên điện thoại hoặc nhập địa chỉ thủ công.";
   } else {
-    text = "Định vị quá lâu. Hãy thử lại ở nơi thoáng hơn hoặc nhập địa chỉ thủ công.";
+    text = "Định vị quá lâu. Hãy thử lại hoặc nhập địa chỉ thủ công.";
   }
-  setLoc("error", text);
+
+  setLoc("error",text);
 }
 
-locateButton.addEventListener("click", function () {
+locateButton.addEventListener("click",function(){
   if (!navigator.geolocation) {
-    setLoc("error", "Trình duyệt không hỗ trợ GPS. Vui lòng nhập địa chỉ thủ công.");
+    setLoc("error","Trình duyệt không hỗ trợ GPS. Vui lòng nhập địa chỉ thủ công.");
     return;
   }
+
   if (window.isSecureContext === false) {
-    setLoc("error", "Cần mở trang bằng https:// để dùng GPS.");
+    setLoc("error","Cần mở trang bằng https:// để dùng GPS.");
     return;
   }
 
   locateButton.disabled = true;
   locateButton.textContent = "Đang định vị...";
-  setLoc("", "Đang xác định vị trí...");
+  setLoc("","Đang xác định vị trí...");
 
-  getPosition(true, 12000, 0)
-    .catch(function (err) {
-      if (err && err.code === 1) throw err;      // bị từ chối quyền thì không thử lại
-      return getPosition(false, 10000, 60000);   // thử lại bằng định vị thường
+  getPosition(true,12000,0)
+    .catch(function(err){
+      if (err && err.code === 1) throw err;
+      return getPosition(false,10000,60000);
     })
     .then(onPosition)
     .catch(onLocateError)
-    .then(function () {
+    .then(function(){
       locateButton.disabled = false;
-      if (pickupLatitude === null) locateButton.textContent = "📍 Dùng vị trí hiện tại";
+      if (pickupLatitude === null) {
+        locateButton.textContent = "📍 Dùng vị trí hiện tại";
+      }
     });
 });
 
-clearLocButton.addEventListener("click", clearLocation);
+clearLocButton.addEventListener("click",clearLocation);
 
-// Khách tự sửa địa chỉ thì giữ lại tọa độ, chỉ bỏ cờ tự điền
-pickupInput.addEventListener("input", function () {
+pickupInput.addEventListener("input",function(){
   autoFilled = false;
 });
 
-/* ---------- Form ---------- */
-form.addEventListener("change", function (e) {
+/* ---------- 服务选择 ---------- */
+
+form.addEventListener("change",function(e){
   if (e.target.name === "svc") {
     weightField.hidden = e.target.value !== "MOVA Truck";
+    invalidateQuote();
+    show("","Dịch vụ đã thay đổi. Vui lòng tính lại giá.");
+  }
+
+  if (e.target.id === "weight") {
+    invalidateQuote();
+    show("","Tải trọng đã thay đổi. Vui lòng tính lại giá.");
   }
 });
 
-function postOrder(order, signal) {
-  return fetch(MOVA_SUPABASE_URL + "/rest/v1/orders", {
-    method: "POST",
-    headers: {
-      "apikey": MOVA_SUPABASE_KEY,
-      "Authorization": "Bearer " + MOVA_SUPABASE_KEY,
-      "Content-Type": "application/json",
-      "Prefer": "return=minimal"
+distanceInput.addEventListener("input",function(){
+  invalidateQuote();
+  show("","Quãng đường đã thay đổi. Vui lòng tính lại giá.");
+});
+
+confirmCheckbox.addEventListener("change",function(){
+  button.disabled = !(currentQuote && confirmCheckbox.checked);
+});
+
+/* ---------- Supabase RPC 计算报价 ---------- */
+
+async function calculateQuote(){
+  var serviceCode = getServiceCode();
+  var distance = Number(distanceInput.value);
+
+  if (!serviceCode) {
+    show("error","Vui lòng chọn dịch vụ và tải trọng xe.");
+    return;
+  }
+
+  if (!Number.isFinite(distance) || distance < 0.1 || distance > 500) {
+    show("error","Vui lòng nhập quãng đường từ 0.1 đến 500 km.");
+    distanceInput.focus();
+    return;
+  }
+
+  quoteButton.disabled = true;
+  button.disabled = true;
+  quoteButton.textContent = "Đang tính giá...";
+  show("","Đang kết nối hệ thống tính giá MOVA...");
+
+  try {
+    var response = await fetch(
+      MOVA_SUPABASE_URL + "/rest/v1/rpc/mova_calculate_fare",
+      {
+        method:"POST",
+        headers:{
+          "apikey":MOVA_SUPABASE_KEY,
+          "Authorization":"Bearer " + MOVA_SUPABASE_KEY,
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          p_service_code:serviceCode,
+          p_distance_km:distance
+        })
+      }
+    );
+
+    if (!response.ok) {
+      var errorText = await response.text();
+      console.error("MOVA pricing error:",response.status,errorText);
+      throw new Error("pricing failed");
+    }
+
+    var result = await response.json();
+    var q = Array.isArray(result) ? result[0] : result;
+
+    if (!q ||
+        q.original_fare_vnd == null ||
+        q.discount_vnd == null ||
+        q.customer_fare_vnd == null ||
+        q.platform_commission_vnd == null ||
+        q.driver_earning_vnd == null) {
+      throw new Error("Invalid pricing response");
+    }
+
+    var now = new Date();
+    var expires = new Date(now.getTime() + QUOTE_VALID_MS);
+
+    var commissionPercent = q.customer_fare_vnd > 0
+      ? Number((Number(q.platform_commission_vnd) / Number(q.customer_fare_vnd) * 100).toFixed(2))
+      : 0;
+
+    currentQuote = {
+      service_code:serviceCode,
+      distance_km:distance,
+      original_fare_vnd:Number(q.original_fare_vnd),
+      discount_vnd:Number(q.discount_vnd),
+      customer_fare_vnd:Number(q.customer_fare_vnd),
+      platform_commission_vnd:Number(q.platform_commission_vnd),
+      driver_earning_vnd:Number(q.driver_earning_vnd),
+      commission_percent:commissionPercent,
+      quoted_at:now.toISOString(),
+      quote_expires_at:expires.toISOString()
+    };
+
+    confirmCheckbox.checked = false;
+    displayQuote(currentQuote);
+    button.disabled = true;
+
+    show("success","Đã tính giá thành công. Vui lòng kiểm tra giá và xác nhận.");
+
+  } catch(error) {
+    console.error("MOVA quote error:",error);
+    currentQuote = null;
+    quotePanel.hidden = true;
+    button.disabled = true;
+    show("error","Không tính được giá. Vui lòng thử lại hoặc liên hệ MOVA.");
+  } finally {
+    quoteButton.disabled = false;
+    quoteButton.textContent = "Tính giá chuyến đi";
+  }
+}
+
+quoteButton.addEventListener("click",calculateQuote);
+
+/* ---------- 提交订单 ---------- */
+
+function postOrder(order,signal){
+  return fetch(MOVA_SUPABASE_URL + "/rest/v1/orders",{
+    method:"POST",
+    headers:{
+      "apikey":MOVA_SUPABASE_KEY,
+      "Authorization":"Bearer " + MOVA_SUPABASE_KEY,
+      "Content-Type":"application/json",
+      "Prefer":"return=minimal"
     },
-    body: JSON.stringify(order),
-    signal: signal
+    body:JSON.stringify(order),
+    signal:signal
   });
 }
 
-form.addEventListener("submit", async function (event) {
+form.addEventListener("submit",async function(event){
   event.preventDefault();
 
-  // Chống bot
   if (document.getElementById("website").value) {
-    show("success", "Đã gửi đơn thành công! MOVA sẽ liên hệ với bạn.");
+    show("success","Đã gửi đơn thành công! MOVA sẽ liên hệ với bạn.");
+    return;
+  }
+
+  if (!currentQuote) {
+    show("error","Vui lòng tính giá trước khi xác nhận đơn.");
+    return;
+  }
+
+  if (Date.now() > new Date(currentQuote.quote_expires_at).getTime()) {
+    invalidateQuote();
+    show("error","Báo giá đã hết hạn. Vui lòng tính lại giá.");
+    return;
+  }
+
+  if (!confirmCheckbox.checked) {
+    show("error","Vui lòng xác nhận đồng ý với báo giá.");
+    confirmCheckbox.focus();
     return;
   }
 
@@ -533,92 +822,121 @@ form.addEventListener("submit", async function (event) {
   var phone = normalizePhone(document.getElementById("phone").value);
   var note = document.getElementById("note").value.trim();
 
-  if (!svcInput) { show("error", "Vui lòng chọn dịch vụ."); return; }
+  if (!svcInput) {
+    show("error","Vui lòng chọn dịch vụ.");
+    return;
+  }
 
   if (!validPhone(phone)) {
-    show("error", "Số điện thoại chưa đúng. Ví dụ: 0901234567.");
+    show("error","Số điện thoại chưa đúng. Ví dụ: 0901234567.");
     document.getElementById("phone").focus();
     return;
   }
 
   if (!pickup || !dropoff) {
-    show("error", "Vui lòng nhập điểm đón và điểm đến.");
+    show("error","Vui lòng nhập điểm đón và điểm đến.");
     return;
   }
 
-  // Chống gửi trùng
+  if (currentQuote.service_code !== getServiceCode() ||
+      currentQuote.distance_km !== Number(distanceInput.value)) {
+    invalidateQuote();
+    show("error","Thông tin chuyến đi đã thay đổi. Vui lòng tính lại giá.");
+    return;
+  }
+
   try {
     var last = Number(localStorage.getItem("mova_last_order") || 0);
+
     if (Date.now() - last < COOLDOWN_MS) {
-      show("error", "Bạn vừa gửi đơn. Vui lòng chờ 30 giây rồi thử lại.");
+      show("error","Bạn vừa gửi đơn. Vui lòng chờ 30 giây rồi thử lại.");
       return;
     }
-  } catch (err) {}
+  } catch(err) {}
 
   var service = svcInput.value === "MOVA Truck"
-    ? "MOVA Truck - " + document.getElementById("weight").value
+    ? "MOVA Truck - " + weightInput.value
     : svcInput.value;
 
   var order = {
-    service_type: service,
-    pickup_address: pickup,
-    dropoff_address: dropoff,
-    customer_phone: phone,
-    note: note || null
+    service_type:service,
+    pickup_address:pickup,
+    dropoff_address:dropoff,
+    customer_phone:phone,
+    note:note || null,
+
+    distance_km:currentQuote.distance_km,
+    estimated_fare_vnd:currentQuote.original_fare_vnd,
+    customer_discount_vnd:currentQuote.discount_vnd,
+    final_fare_vnd:currentQuote.customer_fare_vnd,
+    platform_commission_vnd:currentQuote.platform_commission_vnd,
+    driver_earning_vnd:currentQuote.driver_earning_vnd,
+    commission_percent:currentQuote.commission_percent,
+
+    quote_status:"confirmed",
+    pricing_snapshot:currentQuote,
+    quoted_at:currentQuote.quoted_at,
+    quote_expires_at:currentQuote.quote_expires_at
   };
 
-  // Chỉ gửi tọa độ khi có GPS
   var hasGps = pickupLatitude !== null && pickupLongitude !== null;
+
   if (hasGps) {
     order.pickup_latitude = pickupLatitude;
     order.pickup_longitude = pickupLongitude;
   }
 
   button.disabled = true;
+  quoteButton.disabled = true;
   button.textContent = "Đang gửi...";
-  show("", "Đang gửi đơn hàng...");
+  show("","Đang gửi đơn hàng...");
 
   var controller = new AbortController();
-  var timer = setTimeout(function () { controller.abort(); }, 12000);
+  var timer = setTimeout(function(){
+    controller.abort();
+  },12000);
 
   try {
-    var response = await postOrder(order, controller.signal);
-
-    // Nếu bảng chưa có cột GPS: gửi lại, đưa link bản đồ vào ghi chú để không mất đơn
-    if (!response.ok && hasGps && response.status === 400) {
-      var fallback = {
-        service_type: order.service_type,
-        pickup_address: order.pickup_address,
-        dropoff_address: order.dropoff_address,
-        customer_phone: order.customer_phone,
-        note: ((note ? note + "\n" : "") + "GPS: " + mapUrl(pickupLatitude, pickupLongitude)).slice(0, 1000)
-      };
-      response = await postOrder(fallback, controller.signal);
-    }
+    var response = await postOrder(order,controller.signal);
 
     if (!response.ok) {
-      console.error("MOVA order error:", response.status, await response.text());
-      throw new Error("order failed");
+      var errorText = await response.text();
+      console.error("MOVA order error:",response.status,errorText);
+      throw new Error("order failed: " + response.status);
     }
 
-    try { localStorage.setItem("mova_last_order", String(Date.now())); } catch (err) {}
+    try {
+      localStorage.setItem("mova_last_order",String(Date.now()));
+    } catch(err) {}
 
-    show("success", "Đã gửi đơn thành công! MOVA sẽ gọi lại cho bạn sớm nhất.");
+    show("success","Đã xác nhận đơn thành công! MOVA sẽ gọi lại cho bạn sớm nhất.");
+
     form.reset();
     weightField.hidden = true;
     autoFilled = false;
     clearLocation();
-    message.scrollIntoView({ behavior: "smooth", block: "center" });
 
-  } catch (error) {
-    console.error("MOVA submission error:", error);
-    show("error", error.name === "AbortError"
-      ? "Mạng chậm, chưa gửi được. Vui lòng thử lại."
-      : "Gửi đơn thất bại. Vui lòng kiểm tra kết nối và thử lại.");
+    currentQuote = null;
+    quotePanel.hidden = true;
+    confirmCheckbox.checked = false;
+    button.disabled = true;
+
+    message.scrollIntoView({behavior:"smooth",block:"center"});
+
+  } catch(error) {
+    console.error("MOVA submission error:",error);
+
+    show("error",
+      error.name === "AbortError"
+      ? "Mạng chậm, chưa xác nhận được đơn. Vui lòng kiểm tra đơn trước khi gửi lại."
+      : "Gửi đơn thất bại. Vui lòng kiểm tra kết nối và thử lại."
+    );
+
   } finally {
     clearTimeout(timer);
-    button.disabled = false;
-    button.textContent = "Gửi đơn đặt dịch vụ";
+    quoteButton.disabled = false;
+    button.textContent = "Xác nhận và đặt chuyến";
+    button.disabled = !(currentQuote && confirmCheckbox.checked);
   }
 });
 </script>
