@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a1120">
+<title>MOVA - Đăng ký tài xế</title>
+<meta name="description" content="Đăng ký trở thành tài xế MOVA: xe máy hoặc xe tải nhỏ tại TP. Hồ Chí Minh, Bình Dương, Đồng Nai.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0a1120;--card:#121d31;--line:#25344d;--text:#f2f5ee;--muted:#9aa8bf;
+  --lime:#c7f36b;--red:#ff8f86;--green:#7ee08a;--amber:#ffd166;
+  --font:"Be Vietnam Pro","Segoe UI",Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;padding:20px;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.6}
+.container{max-width:520px;margin:auto}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.logo{font-size:26px;font-weight:800;letter-spacing:.06em;text-decoration:none;color:var(--text)}
+.logo span{background:var(--lime);color:#0a1120;padding:0 6px;border-radius:7px;margin-left:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;margin-bottom:16px}
+h1{margin:0 0 6px;font-size:26px;line-height:1.25}
+h2{margin:0 0 6px;font-size:22px}
+.muted{color:var(--muted)}
+.hidden,[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--lime);outline-offset:2px;border-radius:8px}
+
+label{display:block;font-weight:700;margin:14px 0 4px;font-size:14px}
+input,select{width:100%;min-height:50px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit}
+input:focus,select:focus{outline:2px solid var(--lime);outline-offset:2px}
+.check{display:flex;gap:10px;align-items:flex-start;margin-top:18px;font-weight:500;font-size:14px;color:var(--muted)}
+.check input{width:20px;min-height:20px;margin-top:3px;flex:none}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 18px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--text);font:inherit;font-weight:700;font-size:15px;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn-primary{background:var(--lime);color:#0a1120;border-color:var(--lime)}
+.btn-block{width:100%;margin-top:20px;padding:14px;font-size:16px}
+
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:5px;margin:18px 0 4px}
+.tab{padding:11px;border:0;border-radius:10px;background:transparent;color:var(--muted);font:inherit;font-weight:700;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--lime);color:#0a1120}
+
+.message{margin-top:14px;font-weight:600;overflow-wrap:anywhere}
+.error{color:var(--red)}.success{color:var(--green)}
+
+.badge{display:inline-block;padding:5px 14px;border-radius:999px;font-weight:800;font-size:13px}
+.badge.pending{background:color-mix(in srgb,var(--amber) 20%,transparent);color:var(--amber)}
+.badge.active{background:color-mix(in srgb,var(--green) 20%,transparent);color:var(--green)}
+.info{display:grid;gap:12px;margin:18px 0}
+.info small{display:block;color:var(--muted);font-size:12px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.actions .btn{flex:1 1 160px}
+
+footer{text-align:center;color:var(--muted);font-size:13px;margin-top:24px}
+footer a{color:var(--lime)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <a class="logo" href="./" aria-label="MOVA">MO<span>VA</span></a>
+</header>
+
+<!-- 1. Đăng ký / Đăng nhập -->
+<section id="authView" class="card">
+  <h1>Trở thành tài xế MOVA</h1>
+  <p class="muted">Có xe máy hoặc xe tải nhỏ? Đăng ký để nhận chuyến tại TP. Hồ Chí Minh, Bình Dương và Đồng Nai.</p>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tabSignup" role="tab" aria-selected="true" type="button">Đăng ký</button>
+    <button class="tab" id="tabLogin" role="tab" aria-selected="false" type="button">Đăng nhập</button>
+  </div>
+
+  <form id="signupForm" novalidate>
+    <label for="suName">Họ và tên *</label>
+    <input id="suName" type="text" autocomplete="name" maxlength="100" placeholder="Nguyễn Văn A">
+
+    <label for="suPhone">Số điện thoại *</label>
+    <input id="suPhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="Ví dụ: 0901 234 567">
+
+    <label for="suVehicle">Loại phương tiện *</label>
+    <select id="suVehicle">
+      <option value="">-- Chọn phương tiện --</option>
+      <option>Xe máy</option>
+      <option>Xe tải 500kg</option>
+      <option>Xe tải 1 tấn</option>
+      <option>Xe tải 1,5 tấn</option>
+      <option>Xe tải 2 tấn</option>
+      <option>Xe tải 2,5 tấn</option>
+    </select>
+
+    <label for="suEmail">Email *</label>
+    <input id="suEmail" type="email" autocomplete="email" placeholder="email@example.com">
+
+    <label for="suPassword">Mật khẩu * (ít nhất 8 ký tự)</label>
+    <input id="suPassword" type="password" autocomplete="new-password" minlength="8">
+
+    <label class="check">
+      <input id="suConsent" type="checkbox">
+      <span>Tôi đồng ý để MOVA liên hệ với tôi qua số điện thoại đã đăng ký.</span>
+    </label>
+
+    <button id="signupButton" class="btn btn-primary btn-block" type="submit">Gửi đăng ký</button>
+  </form>
+
+  <form id="loginForm" novalidate hidden>
+    <label for="liEmail">Email</label>
+    <input id="liEmail" type="email" autocomplete="username" placeholder="email@example.com">
+
+    <label for="liPassword">Mật khẩu</label>
+    <input id="liPassword" type="password" autocomplete="current-password">
+
+    <button id="loginButton" class="btn btn-primary btn-block" type="submit">Đăng nhập</button>
+  </form>
+
+  <p id="authMessage" class="message" role="status" aria-live="polite"></p>
+</section>
+
+<!-- 2. Hoàn tất hồ sơ (đã có tài khoản nhưng chưa có hồ sơ) -->
+<section id="profileView" class="card hidden">
+  <h2>Hoàn tất hồ sơ tài xế</h2>
+  <p class="muted">Kiểm tra thông tin rồi gửi để MOVA xét duyệt.</p>
+  <form id="profileForm" novalidate>
+    <label for="pfName">Họ và tên *</label>
+    <input id="pfName" type="text" autocomplete="name" maxlength="100">
+
+    <label for="pfPhone">Số điện thoại *</label>
+    <input id="pfPhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20">
+
+    <label for="pfVehicle">Loại phương tiện *</label>
+    <select id="pfVehicle">
+      <option value="">-- Chọn phương tiện --</option>
+      <option>Xe máy</option>
+      <option>Xe tải 500kg</option>
+      <option>Xe tải 1 tấn</option>
+      <option>Xe tải 1,5 tấn</option>
+      <option>Xe tải 2 tấn</option>
+      <option>Xe tải 2,5 tấn</option>
+    </select>
+
+    <label class="check">
+      <input id="pfConsent" type="checkbox">
+      <span>Tôi đồng ý để MOVA liên hệ với tôi qua số điện thoại đã đăng ký.</span>
+    </label>
+
+    <button id="profileButton" class="btn btn-primary btn-block" type="submit">Gửi hồ sơ</button>
+  </form>
+  <p id="profileMessage" class="message" role="status" aria-live="polite"></p>
+  <div class="actions"><button class="btn" id="profileLogout" type="button">Đăng xuất</button></div>
+</section>
+
+<!-- 3. Trạng thái hồ sơ -->
+<section id="statusView" class="card hidden">
+  <span id="statusBadge" class="badge pending">Chờ duyệt</span>
+  <h2 id="statusTitle" style="margin-top:12px"></h2>
+  <p id="statusText" class="muted"></p>
+  <div class="info">
+    <div><small>Họ và tên</small><span id="stName"></span></div>
+    <div><small>Số điện thoại</small><span id="stPhone"></span></div>
+    <div><small>Phương tiện</small><span id="stVehicle"></span></div>
+    <div><small>Ngày đăng ký</small><span id="stDate"></span></div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" id="refreshButton" type="button">Kiểm tra lại trạng thái</button>
+    <button class="btn" id="statusLogout" type="button">Đăng xuất</button>
+  </div>
+  <p id="statusMessage" class="message" role="status" aria-live="polite"></p>
+</section>
+
+<footer>
+  <a href="./">← Về trang chủ MOVA</a>
+</footer>
+
+</div>
+
+<script>
+var SUPABASE_URL = "https://ujggieewnhzekuphtbmj.supabase.co";
+var SUPABASE_KEY = "sb_publishable_ANjWXcCTlAlJ0UZ5YqgXvQ_SkhErKsf";
+var db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+var $ = function (id) { return document.getElementById(id); };
+
+/* ---------- helpers ---------- */
+function setMsg(el, text, type) { el.textContent = text || ""; el.className = "message " + (type || ""); }
+function showView(name) {
+  ["authView", "profileView", "statusView"].forEach(function (v) {
+    $(v).classList.toggle("hidden", v !== name);
+  });
+}
+function normalizePhone(v) {
+  var p = String(v || "").replace(/[\s.\-()]/g, "");
+  if (/^\+?84\d{9,10}$/.test(p)) p = "0" + p.replace(/^\+?84/, "");
+  return p;
+}
+function validPhone(v) { return /^0\d{9,10}$/.test(v); }
+function validEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function fmtDate(v) { return v ? new Date(v).toLocaleDateString("vi-VN") : "-"; }
+function viError(msg) {
+  msg = String(msg || "");
+  if (/already registered|already been registered/i.test(msg)) return "Email này đã đăng ký. Hãy chuyển sang tab Đăng nhập.";
+  if (/invalid login/i.test(msg)) return "Email hoặc mật khẩu không đúng.";
+  if (/not confirmed/i.test(msg)) return "Bạn chưa xác nhận email. Hãy mở email và bấm vào liên kết xác nhận.";
+  if (/at least|weak/i.test(msg)) return "Mật khẩu quá yếu. Hãy dùng ít nhất 8 ký tự.";
+  if (/rate limit|too many/i.test(msg)) return "Bạn thao tác quá nhanh. Vui lòng chờ một lát rồi thử lại.";
+  if (/network|fetch/i.test(msg)) return "Lỗi mạng. Vui lòng kiểm tra kết nối và thử lại.";
+  return msg || "Có lỗi xảy ra. Vui lòng thử lại.";
+}
+function setBusy(btn, busy, busyText, idleText) {
+  btn.disabled = busy;
+  btn.textContent = busy ? busyText : idleText;
+}
+
+/* ---------- tabs ---------- */
+function setMode(mode) {
+  var signup = mode === "signup";
+  $("tabSignup").setAttribute("aria-selected", signup);
+  $("tabLogin").setAttribute("aria-selected", !signup);
+  $("signupForm").hidden = !signup;
+  $("loginForm").hidden = signup;
+  setMsg($("authMessage"), "");
+}
+$("tabSignup").addEventListener("click", function () { setMode("signup"); });
+$("tabLogin").addEventListener("click", function () { setMode("login"); });
+
+/* ---------- hồ sơ tài xế ---------- */
+async function createProfile(user, data) {
+  var r = await db.from("driver_profiles").insert({
+    user_id: user.id,
+    full_name: data.full_name,
+    phone: data.phone,
+    vehicle_type: data.vehicle_type
+  });
+  // 23505: đã có hồ sơ rồi, coi như thành công
+  if (r.error && r.error.code !== "23505") throw r.error;
+}
+
+async function route(session) {
+  if (!session) { showView("authView"); return; }
+
+  var r = await db.from("driver_profiles")
+    .select("full_name,phone,vehicle_type,is_active,created_at")
+    .eq("user_id", session.user.id)
+    .maybeSingle();
+
+  if (r.error) {
+    showView("authView");
+    setMsg($("authMessage"), "Không thể tải hồ sơ: " + r.error.message, "error");
+    return;
+  }
+
+  if (r.data) {
+    renderStatus(r.data);
+    showView("statusView");
+  } else {
+    var meta = session.user.user_metadata || {};
+    $("pfName").value = meta.full_name || "";
+    $("pfPhone").value = meta.phone || "";
+    $("pfVehicle").value = meta.vehicle_type || "";
+    $("pfConsent").checked = false;
+    setMsg($("profileMessage"), "");
+    showView("profileView");
+  }
+}
+
+function renderStatus(d) {
+  var active = d.is_active === true;
+  var badge = $("statusBadge");
+  badge.className = "badge " + (active ? "active" : "pending");
+  badge.textContent = active ? "Đang hoạt động" : "Chờ duyệt";
+  $("statusTitle").textContent = active ? "Hồ sơ của bạn đã được duyệt" : "Đã nhận hồ sơ của bạn";
+  $("statusText").textContent = active
+    ? "Chào mừng bạn đến với MOVA. Đội ngũ MOVA sẽ liên hệ để hướng dẫn nhận chuyến."
+    : "MOVA đang xem xét hồ sơ và sẽ liên hệ qua số điện thoại bạn đã đăng ký.";
+  $("stName").textContent = d.full_name || "-";
+  $("stPhone").textContent = d.phone || "-";
+  $("stVehicle").textContent = d.vehicle_type || "-";
+  $("stDate").textContent = fmtDate(d.created_at);
+}
+
+function readFields(prefix) {
+  return {
+    full_name: $(prefix + "Name").value.trim(),
+    phone: normalizePhone($(prefix + "Phone").value),
+    vehicle_type: $(prefix + "Vehicle").value
+  };
+}
+function validateProfile(d, consentId, msgEl) {
+  if (!d.full_name) { setMsg(msgEl, "Vui lòng nhập họ và tên.", "error"); return false; }
+  if (!validPhone(d.phone)) { setMsg(msgEl, "Số điện thoại chưa đúng. Ví dụ: 0901234567.", "error"); return false; }
+  if (!d.vehicle_type) { setMsg(msgEl, "Vui lòng chọn loại phương tiện.", "error"); return false; }
+  if (!$(consentId).checked) { setMsg(msgEl, "Vui lòng đồng ý để MOVA liên hệ với bạn.", "error"); return false; }
+  return true;
+}
+
+/* ---------- đăng ký ---------- */
+$("signupForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  var msg = $("authMessage");
+  var btn = $("signupButton");
+  var data = readFields("su");
+  var email = $("suEmail").value.trim();
+  var password = $("suPassword").value;
+
+  if (!validateProfile(data, "suConsent", msg)) return;
+  if (!validEmail(email)) { setMsg(msg, "Email chưa đúng.", "error"); return; }
+  if (password.length < 8) { setMsg(msg, "Mật khẩu cần ít nhất 8 ký tự.", "error"); return; }
+
+  setBusy(btn, true, "Đang gửi...", "Gửi đăng ký");
+  setMsg(msg, "Đang tạo tài khoản...");
+
+  try {
+    var r = await db.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        data: data,
+        emailRedirectTo: location.origin + location.pathname
+      }
+    });
+    if (r.error) throw r.error;
+
+    // Email đã tồn tại (khi bật xác nhận email, Supabase trả về user rỗng)
+    if (r.data.user && r.data.user.identities && r.data.user.identities.length === 0) {
+      throw new Error("User already registered");
+    }
+
+    if (r.data.session) {
+      try { await createProfile(r.data.session.user, data); }
+      catch (err) { setMsg(msg, "", ""); }      // nếu lỗi, bước sau sẽ cho nhập lại hồ sơ
+      $("signupForm").reset();
+      await route(r.data.session);
+    } else {
+      $("signupForm").reset();
+      setMode("login");
+      setMsg($("authMessage"),
+        "Đã gửi email xác nhận. Hãy bấm vào liên kết trong email, rồi quay lại đăng nhập để hoàn tất hồ sơ.",
+        "success");
+    }
+  } catch (err) {
+    setMsg(msg, viError(err.message), "error");
+  } finally {
+    setBusy(btn, false, "Đang gửi...", "Gửi đăng ký");
+  }
+});
+
+/* ---------- đăng nhập ---------- */
+$("loginForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  var msg = $("authMessage");
+  var btn = $("loginButton");
+  var email = $("liEmail").value.trim();
+  var password = $("liPassword").value;
+
+  if (!validEmail(email) || !password) { setMsg(msg, "Vui lòng nhập email và mật khẩu.", "error"); return; }
+
+  setBusy(btn, true, "Đang đăng nhập...", "Đăng nhập");
+  setMsg(msg, "");
+
+  try {
+    var r = await db.auth.signInWithPassword({ email: email, password: password });
+    if (r.error) throw r.error;
+    $("loginForm").reset();
+    await route(r.data.session);
+  } catch (err) {
+    setMsg(msg, viError(err.message), "error");
+  } finally {
+    setBusy(btn, false, "Đang đăng nhập...", "Đăng nhập");
+  }
+});
+
+/* ---------- hoàn tất hồ sơ ---------- */
+$("profileForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  var msg = $("profileMessage");
+  var btn = $("profileButton");
+  var data = readFields("pf");
+
+  if (!validateProfile(data, "pfConsent", msg)) return;
+
+  setBusy(btn, true, "Đang gửi...", "Gửi hồ sơ");
+  setMsg(msg, "");
+
+  try {
+    var s = await db.auth.getSession();
+    if (!s.data.session) throw new Error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+    await createProfile(s.data.session.user, data);
+    await route(s.data.session);
+  } catch (err) {
+    setMsg(msg, viError(err.message), "error");
+  } finally {
+    setBusy(btn, false, "Đang gửi...", "Gửi hồ sơ");
+  }
+});
+
+/* ---------- trạng thái / đăng xuất ---------- */
+$("refreshButton").addEventListener("click", async function () {
+  var btn = $("refreshButton");
+  btn.disabled = true;
+  var s = await db.auth.getSession();
+  await route(s.data.session);
+  setMsg($("statusMessage"), "Đã cập nhật.", "success");
+  btn.disabled = false;
+});
+
+async function logout() {
+  await db.auth.signOut();
+  setMode("login");
+  showView("authView");
+  setMsg($("authMessage"), "Đã đăng xuất.", "success");
+}
+$("statusLogout").addEventListener("click", logout);
+$("profileLogout").addEventListener("click", logout);
+
+db.auth.onAuthStateChange(function (event) {
+  if (event === "SIGNED_OUT") showView("authView");
+});
+
+/* ---------- khởi động ---------- */
+(async function init() {
+  var s = await db.auth.getSession();
+  await route(s.data.session);
+})();
+</script>
+</body>
+</html>
