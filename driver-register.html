@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -152,7 +151,15 @@ a{color:var(--lime)}
 
 /* SUPABASE */
 const SUPABASE_URL = "https://ujggieewnhzekuphtbmj.supabase.co";
-const SUPABASE_KEY = "sb_publishable_ANjWXcCTlAlJUZ5YqgXvQ_SkhErKsf";
+
+/* Corrected Publishable key */
+const SUPABASE_KEY = "sb_publishable_ANjWXcCTlAlJ0UZ5YqgXvQ_SkhErKsf";
+
+if (!window.supabase) {
+  document.getElementById("authMessage").textContent =
+    "Không tải được thư viện Supabase. Vui lòng tải lại trang.";
+  throw new Error("Supabase library unavailable");
+}
 
 const db = window.supabase.createClient(
   SUPABASE_URL,
@@ -195,7 +202,7 @@ function explainError(error) {
   const m = String(error.message || error || "");
 
   if (/invalid api key/i.test(m))
-    return "Invalid API key: kiểm tra URL và Publishable key của dự án Supabase.";
+    return "Supabase từ chối Publishable key. Cần kiểm tra key đang hoạt động trong Supabase API Keys.";
 
   if (/already registered|already been registered/i.test(m))
     return "Email này đã đăng ký. Hãy chuyển sang Đăng nhập.";
@@ -398,10 +405,6 @@ $("logoutBtn").onclick = async () => {
 /* INITIALIZE */
 async function init() {
   try {
-    if (!window.supabase) {
-      throw new Error("Không tải được thư viện Supabase.");
-    }
-
     const {data,error} = await db.auth.getSession();
     if (error) throw error;
 
