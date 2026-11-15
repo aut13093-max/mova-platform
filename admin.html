@@ -51,13 +51,18 @@ input,select{width:100%;padding:13px;margin:6px 0;border-radius:10px;border:1px 
 .driver-controls{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-top:8px}
 .driver-controls select,.driver-controls input{margin:0}
 .fee-note{font-size:12px;color:var(--muted);margin-top:8px}
-.more{margin-top:14px}
+.driver-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.driver-item{padding:14px;border:1px solid var(--line);border-radius:12px;background:#101a2c;min-width:0}
+.driver-item .driver-name{font-weight:800;overflow-wrap:anywhere}
+.driver-item .driver-meta{font-size:13px;color:var(--muted);margin:7px 0 12px;overflow-wrap:anywhere}
+.driver-item a{color:var(--lime);font-weight:600}
+.driver-item .actions .btn{flex:1 1 40%}
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:#1d2c47;border:1px solid var(--line);color:var(--text);padding:12px 18px;border-radius:12px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;max-width:90vw}
 #toast.show{opacity:1;transform:translateX(-50%)}#toast.ok{border-color:var(--green)}#toast.bad{border-color:var(--red)}
 @media(max-width:700px){
 body{padding:12px;padding-top:calc(12px + env(safe-area-inset-top,0px))}
 .stats{grid-template-columns:1fr 1fr}.tools{grid-template-columns:1fr 1fr}.tools input{grid-column:1/-1}
-.info{grid-template-columns:1fr}.driver-controls{grid-template-columns:1fr}}
+.info{grid-template-columns:1fr}.driver-controls{grid-template-columns:1fr}.driver-list{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){#toast{transition:none}}
 </style>
 </head>
@@ -90,7 +95,13 @@ body{padding:12px;padding-top:calc(12px + env(safe-area-inset-top,0px))}
       <div class="stat"><b id="totalCount">0</b><small>Tổng đơn</small></div>
     </div>
   </div>
-  <div class="card"><h2>Danh sách tài xế</h2><p class="muted" id="driverStatus">Đang tải tài xế...</p></div>
+
+  <div class="card">
+    <h2>Danh sách tài xế</h2>
+    <p class="muted" id="driverStatus">Đang tải tài xế...</p>
+    <div id="driversList" class="driver-list"></div>
+  </div>
+
   <div class="card">
     <div class="tools">
       <input id="searchInput" type="search" placeholder="Tìm số điện thoại, địa chỉ, dịch vụ, ID..." aria-label="Tìm đơn hàng">
@@ -107,6 +118,7 @@ body{padding:12px;padding-top:calc(12px + env(safe-area-inset-top,0px))}
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
+"use strict";
 var SUPABASE_URL="https://ujggieewnhzekuphtbmj.supabase.co";
 var SUPABASE_KEY="sb_publishable_ANjWXcCTlAlJ0UZ5YqgXvQ_SkhErKsf";
 var PAGE_SIZE=30,POLL_MS=60000;
@@ -121,9 +133,10 @@ var STATUS={
 };
 var NEXT={pending:["assigned","cancelled"],assigned:["in_progress","cancelled"],in_progress:["completed","cancelled"],completed:[],cancelled:["pending"]};
 var ACTION={assigned:"Phân tài xế",in_progress:"Bắt đầu vận chuyển",completed:"Hoàn thành",cancelled:"Hủy đơn",pending:"Mở lại đơn"};
+var VLABEL={pending:["Chờ duyệt hồ sơ","var(--amber)"],approved:["Hồ sơ đã duyệt","var(--green)"],rejected:["Hồ sơ bị từ chối","var(--red)"]};
 
 var $=function(id){return document.getElementById(id);};
-var allOrders=[],allDrivers=[],filterStatus="",visibleLimit=PAGE_SIZE;
+var allOrders=[],allDrivers=[],verMap={},docsOpen={},filterStatus="",visibleLimit=PAGE_SIZE;
 var channel=null,pollTimer=null,reloadTimer=null,searchTimer=null,firstLoadDone=false,loadSeq=0,busy={};
 
 function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
@@ -131,7 +144,6 @@ function setMsg(el,text,type){el.textContent=text;el.className="message "+(type|
 var toastTimer;
 function toast(text,type){var t=$("toast");t.textContent=text;t.className="show "+(type||"");clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.className="";},3200);}
 
-/* 提示音：复用同一个 AudioContext，首次点击后解锁 */
 var audioCtx=null;
 function unlockAudio(){try{if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume();}catch(e){}}
 document.addEventListener("pointerdown",unlockAudio,{once:true});
@@ -165,30 +177,172 @@ function viError(msg){
   return msg||"Đăng nhập thất bại.";
 }
 
-/* 防重复点击：同一个操作未完成时忽略再次点击 */
 async function once(key,fn){
   if(busy[key])return;
   busy[key]=true;
-  try{await fn();}finally{delete busy[key];}
+  try{return await fn();}finally{delete busy[key];}
 }
 
-/* 管理员验证 */
 async function verifyAdmin(user){
   var r=await db.from("admin_users").select("user_id").eq("user_id",user.id).maybeSingle();
   if(r.error)throw new Error("Không thể xác minh quyền quản trị: "+r.error.message);
   if(!r.data)throw new Error("Tài khoản này không có quyền quản trị MOVA.");
 }
 
-/* 读取全部司机（含已停用，避免已分配的司机显示成“未分配”） */
-async function loadDrivers(){
-  var r=await db.from("driver_profiles").select("user_id,full_name,phone,vehicle_type,is_active").order("created_at",{ascending:false});
-  if(r.error){$("driverStatus").textContent="Không tải được tài xế: "+r.error.message;allDrivers=[];return;}
-  allDrivers=r.data||[];
-  var n=activeDrivers().length;
-  $("driverStatus").textContent="Có "+n+" tài xế đang hoạt động"+(n===0?" - chưa thể phân đơn.":".");
-}
+/* ===== Tài xế + hồ sơ xác minh ===== */
 function activeDrivers(){return allDrivers.filter(function(d){return d.is_active===true;});}
+function getDriver(id){
+  if(!id)return null;
+  return allDrivers.find(function(d){return String(d.user_id)===String(id);})||null;
+}
 
+async function loadDrivers(){
+  var res=await Promise.all([
+    db.from("driver_profiles").select("user_id,full_name,phone,vehicle_type,is_active,created_at").order("created_at",{ascending:false}),
+    db.from("driver_verifications").select("user_id,status,admin_note,vehicle_plate,license_number,cccd_last4,cccd_front_path,cccd_back_path,selfie_path,license_image_path,vehicle_registration_path")
+  ]);
+  var r=res[0],v=res[1];
+  if(r.error){
+    $("driverStatus").textContent="Không tải được tài xế: "+r.error.message;
+    allDrivers=[];renderDrivers();return;
+  }
+  allDrivers=r.data||[];
+  verMap={};
+  (v.data||[]).forEach(function(x){verMap[x.user_id]=x;});
+  var active=activeDrivers().length;
+  var pending=Object.keys(verMap).filter(function(k){return verMap[k].status==="pending";}).length;
+  $("driverStatus").textContent="Tổng "+allDrivers.length+" tài xế · "+active+" đang hoạt động · "+pending+" hồ sơ chờ duyệt."+
+    (v.error?" (Không đọc được hồ sơ xác minh: "+v.error.message+")":"");
+  renderDrivers();
+}
+
+function renderDrivers(){
+  var box=$("driversList");
+  if(!box)return;
+  if(!allDrivers.length){box.innerHTML='<p class="muted">Chưa có hồ sơ tài xế.</p>';return;}
+  var isPend=function(d){return verMap[d.user_id]&&verMap[d.user_id].status==="pending"?0:1;};
+  var list=allDrivers.slice().sort(function(a,b){return isPend(a)-isPend(b);});
+
+  box.innerHTML=list.map(function(d){
+    var id=esc(d.user_id),v=verMap[d.user_id],active=d.is_active===true;
+    var vl=v?(VLABEL[v.status]||[v.status,"var(--muted)"]):["Chưa gửi hồ sơ","var(--muted)"];
+    var dis=busy["driver-"+d.user_id]?" disabled":"";
+    var docs=(docsOpen[d.user_id]||[]).map(function(x){
+      return '<a href="'+esc(x.u)+'" target="_blank" rel="noopener">'+esc(x.l)+'</a>';
+    }).join(" · ");
+    var btns="";
+    if(v){
+      btns+='<button type="button" class="btn" data-vact="docs" data-id="'+id+'"'+dis+'>Xem giấy tờ</button>';
+      if(v.status==="pending"){
+        btns+='<button type="button" class="btn btn-primary" data-vact="approve" data-id="'+id+'"'+dis+'>Duyệt</button>'+
+              '<button type="button" class="btn btn-danger" data-vact="reject" data-id="'+id+'"'+dis+'>Từ chối</button>';
+      }
+    }
+    if((v&&v.status==="approved")||active){
+      btns+='<button type="button" class="btn '+(active?"btn-danger":"btn-primary")+'" data-vact="toggle" data-id="'+id+'"'+dis+'>'+
+            (active?"Tạm ngưng":"Kích hoạt lại")+'</button>';
+    }
+    return '<div class="driver-item">'+
+      '<div class="order-top"><div class="driver-name">'+esc(d.full_name||"Tài xế")+'</div>'+
+      '<span class="badge" style="--c:'+(active?"var(--green)":"var(--red)")+'">'+(active?"Đang hoạt động":"Chưa hoạt động")+'</span></div>'+
+      '<div class="driver-meta">SĐT: '+esc(d.phone||"-")+'<br>Xe: '+esc(d.vehicle_type||"-")+
+      (v?'<br>Biển số: '+esc(v.vehicle_plate||"-")+' · GPLX: '+esc(v.license_number||"-")+' · CCCD ****'+esc(v.cccd_last4||"-"):"")+
+      '<br><span style="color:'+vl[1]+';font-weight:700">'+esc(vl[0])+'</span>'+
+      (v&&v.admin_note?'<br>Ghi chú: '+esc(v.admin_note):"")+'</div>'+
+      (docs?'<div class="driver-meta">'+docs+'<br><small>Liên kết hết hạn sau 5 phút.</small></div>':"")+
+      '<div class="actions">'+btns+'</div></div>';
+  }).join("");
+}
+
+async function showDocs(id){
+  var v=verMap[id];
+  if(!v)return;
+  var items=[["CCCD trước",v.cccd_front_path],["CCCD sau",v.cccd_back_path],["Chân dung",v.selfie_path],["GPLX",v.license_image_path],["Đăng ký xe",v.vehicle_registration_path]];
+  var rs=await Promise.all(items.map(function(it){
+    return db.storage.from("driver-verification").createSignedUrl(it[1],300);
+  }));
+  var out=[];
+  for(var i=0;i<rs.length;i++){
+    if(rs[i].error){toast("Không mở được giấy tờ: "+rs[i].error.message,"bad");return;}
+    out.push({l:items[i][0],u:rs[i].data.signedUrl});
+  }
+  docsOpen[id]=out;
+  renderDrivers();
+}
+
+async function reviewDriver(id,ok){
+  var d=getDriver(id),v=verMap[id];
+  if(!d||!v){toast("Tài xế chưa gửi hồ sơ.","bad");return;}
+  var note=null;
+  if(ok){
+    if(!confirm("Duyệt tài xế "+d.full_name+"?\nBiển số: "+v.vehicle_plate+"\n4 số cuối CCCD: "+v.cccd_last4))return;
+  }else{
+    note=prompt("Lý do từ chối (tài xế sẽ nhìn thấy):");
+    if(note===null)return;
+    note=note.trim();
+    if(!note){toast("Cần nhập lý do từ chối.","bad");return;}
+  }
+  var r1=await db.from("driver_verifications").update({status:ok?"approved":"rejected",admin_note:ok?null:note}).eq("user_id",id).select("user_id");
+  if(r1.error||!r1.data||!r1.data.length){
+    toast("Cập nhật hồ sơ thất bại: "+(r1.error?r1.error.message:"Không có quyền UPDATE."),"bad");return;
+  }
+  var r2=await db.from("driver_profiles").update({is_active:ok}).eq("user_id",id).select("user_id");
+  if(r2.error||!r2.data||!r2.data.length){
+    await loadDrivers();
+    toast("Đã đổi trạng thái hồ sơ nhưng chưa kích hoạt được: "+(r2.error?r2.error.message:"Không có quyền UPDATE."),"bad");return;
+  }
+  delete docsOpen[id];
+  await loadDrivers();
+  toast(ok?"Đã duyệt và kích hoạt tài xế.":"Đã từ chối hồ sơ.","ok");
+}
+
+async function toggleDriver(id){
+  var driver=getDriver(id);
+  if(!driver){toast("Không tìm thấy tài xế.","bad");return;}
+  var next=driver.is_active!==true;
+  var action=next?"kích hoạt":"tạm ngưng";
+
+  if(next&&(!verMap[id]||verMap[id].status!=="approved")){
+    toast("Cần duyệt hồ sơ xác minh trước khi kích hoạt.","bad");return;
+  }
+  var openJobs=allOrders.filter(function(o){
+    return String(o.assigned_driver_id)===String(id)&&(o.status==="assigned"||o.status==="in_progress");
+  }).length;
+
+  if(!confirm("Xác nhận "+action+" tài xế "+driver.full_name+"?"+
+    (!next&&openJobs?"\n\nCẢNH BÁO: tài xế còn "+openJobs+" đơn chưa hoàn thành.":"")))return;
+
+  var sr=await db.auth.getSession();
+  if(sr.error||!sr.data.session){
+    toast("Phiên đăng nhập hết hạn. Hãy đăng nhập lại.","bad");
+    showLogin("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.","error");return;
+  }
+  try{await verifyAdmin(sr.data.session.user);}catch(err){toast(err.message,"bad");return;}
+
+  var r=await db.from("driver_profiles").update({is_active:next}).eq("user_id",driver.user_id).select("user_id,full_name,phone,vehicle_type,is_active");
+  if(r.error){toast("Cập nhật thất bại: "+r.error.message,"bad");return;}
+  if(!r.data||r.data.length===0){toast("Không cập nhật được. Hãy kiểm tra quyền UPDATE và RLS.","bad");return;}
+  Object.assign(driver,r.data[0]);
+  renderDrivers();render();
+  toast(next?"Đã kích hoạt tài xế thành công.":"Đã tạm ngưng tài xế.","ok");
+}
+
+$("driversList").addEventListener("click",function(e){
+  var b=e.target.closest("[data-vact]");
+  if(!b)return;
+  var id=b.dataset.id,key="driver-"+id;
+  var fn={
+    docs:function(){return showDocs(id);},
+    approve:function(){return reviewDriver(id,true);},
+    reject:function(){return reviewDriver(id,false);},
+    toggle:function(){return toggleDriver(id);}
+  }[b.dataset.vact];
+  if(!fn)return;
+  b.disabled=true;
+  once(key,fn).finally(function(){if(b.isConnected)b.disabled=false;});
+});
+
+/* ===== Đăng nhập ===== */
 async function openDashboard(user){
   await verifyAdmin(user);
   $("loginCard").classList.add("hidden");$("dashboard").classList.remove("hidden");$("whoBox").classList.remove("hidden");
@@ -196,11 +350,10 @@ async function openDashboard(user){
   await loadDrivers();await loadOrders();startLive();
 }
 function showLogin(msg,type){
-  stopLive();allOrders=[];allDrivers=[];firstLoadDone=false;
+  stopLive();allOrders=[];allDrivers=[];verMap={};docsOpen={};firstLoadDone=false;
   $("dashboard").classList.add("hidden");$("whoBox").classList.add("hidden");$("loginCard").classList.remove("hidden");
   $("password").value="";document.title="MOVA Admin";setMsg($("loginMessage"),msg||"",type);
 }
-
 $("loginForm").addEventListener("submit",async function(e){
   e.preventDefault();
   var btn=$("loginButton");btn.disabled=true;btn.textContent="Đang đăng nhập...";setMsg($("loginMessage"),"","");
@@ -216,7 +369,7 @@ db.auth.onAuthStateChange(function(event){
   if(event==="SIGNED_OUT"&&!$("dashboard").classList.contains("hidden"))showLogin("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.","error");
 });
 
-/* 读取订单（用序号防止旧请求覆盖新数据） */
+/* ===== Đơn hàng ===== */
 async function loadOrders(silent){
   var my=++loadSeq;
   if(!silent)setMsg($("orderMessage"),"Đang tải đơn hàng...","muted");
@@ -234,7 +387,6 @@ async function loadOrders(silent){
 }
 function scheduleReload(){clearTimeout(reloadTimer);reloadTimer=setTimeout(function(){loadOrders(true);},400);}
 
-/* 实时更新 */
 function startLive(){
   stopLive();
   $("liveStatus").textContent="Tự động làm mới mỗi 60 giây.";
@@ -252,12 +404,10 @@ function stopLive(){
   if(channel){db.removeChannel(channel);channel=null;}
   clearInterval(pollTimer);clearTimeout(reloadTimer);
 }
-/* 手机切回页面时立即刷新 */
 document.addEventListener("visibilitychange",function(){
   if(!document.hidden&&!$("dashboard").classList.contains("hidden")){loadOrders(true);loadDrivers();}
 });
 
-/* 统计 */
 function count(status){return allOrders.filter(function(o){return o.status===status;}).length;}
 function updateStats(){
   var pending=count("pending");
@@ -274,10 +424,6 @@ function renderChips(){
   });
   $("chips").innerHTML=html;
 }
-function getDriver(id){
-  if(!id)return null;
-  return allDrivers.find(function(d){return String(d.user_id)===String(id);})||null;
-}
 function getFiltered(){
   var q=$("searchInput").value.trim().toLowerCase();
   var list=allOrders.filter(function(o){
@@ -286,7 +432,6 @@ function getFiltered(){
     var d=getDriver(o.assigned_driver_id);
     return [o.id,o.service_type,o.pickup_address,o.dropoff_address,o.customer_phone,o.note,d?d.full_name:"",d?d.phone:""].join(" ").toLowerCase().indexOf(q)!==-1;
   });
-  /* 在“全部”里，把待处理的单排到最前面 */
   if(!filterStatus)list=list.slice().sort(function(a,b){return (a.status==="pending"?0:1)-(b.status==="pending"?0:1);});
   return list;
 }
@@ -322,7 +467,7 @@ function driverHTML(o){
       '<input id="fare-'+id+'" type="number" inputmode="numeric" min="0" step="1000" placeholder="Giá cuối (VND)" value="'+esc(o.final_fare_vnd||"")+'" aria-label="Giá cuối VND">'+
       '<button type="button" class="btn" data-act="fare" data-id="'+id+'">Lưu giá</button>'+
     '</div>'+
-    (activeDrivers().length===0?'<p class="fee-note">Chưa có tài xế đang hoạt động.</p>':'')+
+    (activeDrivers().length===0?'<p class="fee-note">Chưa có tài xế đang hoạt động.</p>':"")+
   '</div>';
 }
 
@@ -353,7 +498,6 @@ function orderHTML(o){
   '</article>';
 }
 
-/* 渲染：保留管理员已选但还没提交的下拉/价格，避免自动刷新时被清空 */
 function render(){
   var keep={};
   document.querySelectorAll("#ordersList [data-dirty]").forEach(function(el){keep[el.id]=el.value;});
@@ -372,7 +516,6 @@ $("ordersList").addEventListener("change",function(e){if(/^(driver|fare)-/.test(
 
 function findOrder(id){return allOrders.find(function(o){return String(o.id)===String(id);});}
 
-/* 分配 / 更换司机：只有“待处理”的单才会自动变成“已分配”，进行中的单换司机不会被退回状态 */
 async function assignDriver(id){
   var order=findOrder(id),select=$("driver-"+id);
   if(!order||!select)return;
@@ -391,7 +534,6 @@ async function assignDriver(id){
   render();toast("Đã phân công tài xế: "+driver.full_name,"ok");
 }
 
-/* 保存最终价格（完成订单前必须有价格） */
 async function saveFare(id){
   var order=findOrder(id),input=$("fare-"+id);
   if(!order||!input)return;
@@ -404,7 +546,6 @@ async function saveFare(id){
   render();toast("Đã lưu giá: "+fmtVnd(v),"ok");
 }
 
-/* 修改订单状态 */
 async function changeStatus(id,to){
   var order=findOrder(id);
   if(!order||order.status===to)return;
@@ -424,9 +565,9 @@ async function changeStatus(id,to){
   toast(to==="completed"?"Đơn hoàn thành. Đã gửi yêu cầu ghi nhận phí.":"Đã chuyển sang: "+STATUS[to].label,"ok");
 }
 
-/* 复制订单 */
 async function copyOrder(id){
-  var o=findOrder(id);if(!o)return;
+  var o=findOrder(id);
+  if(!o)return;
   var gps=hasGps(o);
   var mapLink=gps?"https://www.google.com/maps?q="+o.pickup_latitude+","+o.pickup_longitude:mapHref(o.pickup_address);
   var d=getDriver(o.assigned_driver_id);
@@ -437,7 +578,6 @@ async function copyOrder(id){
   catch(e){toast("Không sao chép được. Hãy thử lại.","bad");}
 }
 
-/* CSV 导出（防公式注入） */
 function csvCell(v){
   var s=String(v==null?"":v);
   if(/^[=+\-@\t\r]/.test(s))s="'"+s;
@@ -459,9 +599,9 @@ function exportCSV(){
   setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
 }
 
-/* 事件 */
 $("ordersList").addEventListener("click",function(e){
-  var b=e.target.closest("[data-act]");if(!b)return;
+  var b=e.target.closest("[data-act]");
+  if(!b)return;
   var act=b.dataset.act,id=b.dataset.id;
   b.disabled=true;
   var done=function(){if(b.isConnected)b.disabled=false;};
@@ -471,7 +611,8 @@ $("ordersList").addEventListener("click",function(e){
   else if(act==="copy")copyOrder(id).then(done,done);
 });
 $("chips").addEventListener("click",function(e){
-  var c=e.target.closest("[data-filter]");if(!c)return;
+  var c=e.target.closest("[data-filter]");
+  if(!c)return;
   filterStatus=c.dataset.filter;visibleLimit=PAGE_SIZE;render();
 });
 $("searchInput").addEventListener("input",function(){
@@ -481,12 +622,11 @@ $("searchInput").addEventListener("input",function(){
 $("moreButton").addEventListener("click",function(){visibleLimit+=PAGE_SIZE;render();});
 $("refreshButton").addEventListener("click",async function(){
   var b=$("refreshButton");b.disabled=true;
-  await loadDrivers();await loadOrders();
-  b.disabled=false;toast("Đã làm mới.","ok");
+  try{await loadDrivers();await loadOrders();toast("Đã làm mới.","ok");}
+  finally{b.disabled=false;}
 });
 $("exportButton").addEventListener("click",exportCSV);
 
-/* 启动 */
 (async function init(){
   var r=await db.auth.getSession();
   if(r.error||!r.data.session)return;
