@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a1120">
+<meta name="robots" content="noindex, nofollow">
+<title>MOVA Control</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{color-scheme:dark;--bg:#0a1120;--card:#121d31;--line:#25344d;--text:#f2f5ee;--muted:#9aa8bf;--lime:#c7f36b;--red:#ff8f86;--green:#7ee08a;--amber:#ffd166}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(90px + env(safe-area-inset-bottom,0px));background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+.wrap{max-width:720px;margin:auto}
+.logo{font-size:22px;font-weight:800;margin-bottom:14px}.logo span{color:var(--lime)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+h2{margin:0 0 10px;font-size:19px}.muted,small{color:var(--muted)}small{display:block;font-size:12px}
+.hidden{display:none!important}
+input{width:100%;min-height:46px;padding:11px;margin:5px 0;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit}
+input[type=checkbox]{width:22px;min-height:22px;margin:0}
+label{display:block;margin-top:10px;font-weight:700;font-size:14px}
+.chk{display:flex;align-items:center;gap:10px}
+.btn{min-height:44px;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--text);font:inherit;font-weight:700;cursor:pointer}
+.btn:disabled{opacity:.5}.btn-p{background:var(--lime);color:#0a1120;border-color:var(--lime)}.btn-d{color:var(--red);border-color:#5a2d2a}.btn-w{width:100%;margin-top:10px}
+.chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:12px}
+.chip{flex:none;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--text);font:inherit;cursor:pointer}
+.chip.on{background:var(--lime);color:#0a1120;border-color:var(--lime);font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.stat b{display:block;font-size:20px;line-height:1.25;overflow-wrap:anywhere}.stat.hi b{color:var(--lime)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}.row>div{min-width:0;overflow-wrap:anywhere}
+.bars{display:flex;align-items:flex-end;gap:6px;height:110px;margin-top:8px}
+.bars div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:10px;color:var(--muted)}
+.bars i{display:block;width:100%;min-height:2px;background:var(--lime);border-radius:4px 4px 0 0}
+.hist{margin:6px 0 4px;padding:10px;background:var(--bg);border-radius:10px;font-size:13px}
+.hist p{margin:6px 0}
+.msg{margin-top:10px;font-weight:600;overflow-wrap:anywhere}.err{color:var(--red)}.ok{color:var(--green)}
+a{color:var(--lime)}
+nav{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,1fr);background:#0d1627;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:20}
+nav button,nav a{min-height:58px;border:0;background:transparent;color:var(--muted);font:inherit;font-size:11px;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-decoration:none;cursor:pointer}
+nav .on{color:var(--lime)}nav span{font-size:20px;line-height:1}
+#toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1d2c47;border:1px solid var(--line);padding:11px 16px;border-radius:12px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30;max-width:90vw}
+#toast.show{opacity:1}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="logo">MO<span>VA</span> CONTROL</div>
+
+<section id="loginCard" class="card">
+  <h2>Đăng nhập quản trị</h2>
+  <form id="loginForm">
+    <input id="email" type="email" placeholder="Email quản trị" required autocomplete="username">
+    <input id="password" type="password" placeholder="Mật khẩu" required autocomplete="current-password">
+    <button class="btn btn-p btn-w" type="submit">Đăng nhập</button>
+  </form>
+  <p id="loginMsg" class="msg err"></p>
+</section>
+
+<main id="view" class="hidden"></main>
+</div>
+
+<nav id="nav" class="hidden">
+  <button data-tab="rev" class="on"><span>💰</span>Doanh thu</button>
+  <button data-tab="cus"><span>👥</span>Khách</button>
+  <button data-tab="set"><span>⚙️</span>Cài đặt</button>
+  <button data-tab="adm"><span>🔑</span>Quản trị</button>
+  <a id="backLink" href="admin.html"><span>📦</span>Đơn hàng</a>
+</nav>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+var SUPABASE_URL="https://ujggieewnhzekuphtbmj.supabase.co";
+var SUPABASE_KEY="sb_publishable_ANjWXcCTlAlJ0UZ5YqgXvQ_SkhErKsf";
+var ADMIN_URL="admin.html";      /* đổi thành tên file trang quản lý đơn của bạn */
+var DRIVER_FEE=0.08;             /* phải khớp với trigger trong database */
+var PLATFORM_FEE=2000;           /* phí nền tảng thu của khách / đơn */
+
+var db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+var $=function(id){return document.getElementById(id);};
+var orders=[],drivers=[],me=null,tab="rev",range="7",custQ="",openPhone="";
+var FIELDS=[
+  {k:"hotline",l:"Hotline / Zalo",t:"text"},
+  {k:"announcement",l:"Thông báo trên trang chủ",t:"text"},
+  {k:"service_bike_on",l:"Bật MOVA Bike",t:"bool"},
+  {k:"service_delivery_on",l:"Bật MOVA Delivery",t:"bool"},
+  {k:"service_truck_on",l:"Bật MOVA Truck",t:"bool"},
+  {k:"min_fare_bike",l:"Giá tối thiểu Bike (VND)",t:"num"},
+  {k:"min_fare_delivery",l:"Giá tối thiểu Delivery (VND)",t:"num"},
+  {k:"min_fare_truck",l:"Giá tối thiểu Truck (VND)",t:"num"}
+];
+
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function vnd(v){return Number(v||0).toLocaleString("vi-VN")+" đ";}
+function fdate(v){return v?new Date(v).toLocaleString("vi-VN"):"-";}
+var tt;
+function toast(t){var e=$("toast");e.textContent=t;e.className="show";clearTimeout(tt);tt=setTimeout(function(){e.className="";},2800);}
+function errText(e){var m=String(e&&e.message||e||"");if(/row-level|permission/i.test(m))return "Không đủ quyền (kiểm tra RLS/SQL).";return m||"Có lỗi xảy ra.";}
+
+/* ===== Đăng nhập ===== */
+async function verifyAdmin(u){
+  var r=await db.from("admin_users").select("user_id").eq("user_id",u.id).maybeSingle();
+  if(r.error)throw r.error;
+  if(!r.data)throw new Error("Tài khoản này không có quyền quản trị MOVA.");
+}
+async function openApp(user){
+  await verifyAdmin(user);
+  me=user;
+  $("loginCard").classList.add("hidden");$("view").classList.remove("hidden");$("nav").classList.remove("hidden");
+  $("view").innerHTML='<p class="muted">Đang tải dữ liệu...</p>';
+  var res=await Promise.all([
+    db.from("orders").select("*").order("created_at",{ascending:false}).limit(2000),
+    db.from("driver_profiles").select("user_id,full_name,phone")
+  ]);
+  if(res[0].error)throw res[0].error;
+  orders=res[0].data||[];drivers=res[1].data||[];
+  setTab(tab);
+}
+function showLogin(m){
+  me=null;orders=[];drivers=[];
+  $("view").classList.add("hidden");$("nav").classList.add("hidden");$("loginCard").classList.remove("hidden");
+  $("password").value="";$("loginMsg").textContent=m||"";
+}
+$("loginForm").addEventListener("submit",async function(e){
+  e.preventDefault();$("loginMsg").textContent="";
+  try{
+    var r=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+    if(r.error)throw r.error;
+    await openApp(r.data.user);
+  }catch(err){await db.auth.signOut();showLogin(/invalid login/i.test(err.message)?"Email hoặc mật khẩu không đúng.":errText(err));}
+});
+$("backLink").setAttribute("href",ADMIN_URL);
+
+/* ===== Điều hướng ===== */
+function setTab(t){
+  tab=t;
+  document.querySelectorAll("nav button[data-tab]").forEach(function(b){b.classList.toggle("on",b.dataset.tab===t);});
+  window.scrollTo({top:0});
+  if(t==="rev")renderRev();else if(t==="cus")renderCus();else if(t==="set")loadSettings();else loadAdmins();
+}
+$("nav").addEventListener("click",function(e){var b=e.target.closest("button[data-tab]");if(b)setTab(b.dataset.tab);});
+
+/* ===== 1. Doanh thu ===== */
+function sinceTs(){
+  var d=new Date();
+  if(range==="today"){d.setHours(0,0,0,0);return d.getTime();}
+  if(range==="all")return 0;
+  return Date.now()-Number(range)*864e5;
+}
+function doneAt(o){return new Date(o.completed_at||o.updated_at||o.created_at).getTime();}
+function isDone(o){return o.status==="completed"&&Number(o.final_fare_vnd)>0;}
+function chips(){
+  return '<div class="chips">'+[["today","Hôm nay"],["7","7 ngày"],["30","30 ngày"],["all","Tất cả"]].map(function(x){
+    return '<button class="chip'+(range===x[0]?" on":"")+'" data-range="'+x[0]+'">'+x[1]+'</button>';
+  }).join("")+'</div>';
+}
+function renderRev(){
+  var s=sinceTs();
+  var done=orders.filter(function(o){return isDone(o)&&doneAt(o)>=s;});
+  var gross=done.reduce(function(a,o){return a+Number(o.final_fare_vnd);},0);
+  var drv=Math.round(gross*DRIVER_FEE),cus=done.length*PLATFORM_FEE;
+  var canc=orders.filter(function(o){return o.status==="cancelled"&&new Date(o.created_at).getTime()>=s;}).length;
+
+  var by={};
+  done.forEach(function(o){var k=o.assigned_driver_id||"-";if(!by[k])by[k]={n:0,g:0};by[k].n++;by[k].g+=Number(o.final_fare_vnd);});
+  var rows=Object.keys(by).sort(function(a,b){return by[b].g-by[a].g;}).map(function(k){
+    var d=drivers.find(function(x){return String(x.user_id)===k;});
+    return '<div class="row"><div><b>'+esc(d?d.full_name:"Chưa phân công")+'</b><small>'+by[k].n+' đơn · cước '+vnd(by[k].g)+'</small></div><b>'+vnd(Math.round(by[k].g*DRIVER_FEE))+'</b></div>';
+  }).join("")||'<p class="muted">Chưa có đơn hoàn thành trong khoảng này.</p>';
+
+  var days=[],max=1;
+  for(var i=6;i>=0;i--){
+    var d0=new Date();d0.setHours(0,0,0,0);d0.setDate(d0.getDate()-i);
+    var a=d0.getTime(),b=a+864e5,v=0;
+    orders.forEach(function(o){if(isDone(o)&&doneAt(o)>=a&&doneAt(o)<b)v+=Math.round(Number(o.final_fare_vnd)*DRIVER_FEE)+PLATFORM_FEE;});
+    days.push({l:d0.getDate()+"/"+(d0.getMonth()+1),v:v});max=Math.max(max,v);
+  }
+  var bars=days.map(function(x){return '<div><i style="height:'+Math.round(x.v/max*85)+'%"></i>'+esc(x.l)+'</div>';}).join("");
+
+  $("view").innerHTML=chips()+
+    '<div class="grid">'+
+    '<div class="stat hi"><small>Doanh thu nền tảng</small><b>'+vnd(drv+cus)+'</b></div>'+
+    '<div class="stat"><small>Tổng giá cước</small><b>'+vnd(gross)+'</b></div>'+
+    '<div class="stat"><small>Phí tài xế ('+Math.round(DRIVER_FEE*100)+'%)</small><b>'+vnd(drv)+'</b></div>'+
+    '<div class="stat"><small>Phí khách ('+vnd(PLATFORM_FEE)+'/đơn)</small><b>'+vnd(cus)+'</b></div>'+
+    '<div class="stat"><small>Đơn hoàn thành</small><b>'+done.length+'</b></div>'+
+    '<div class="stat"><small>Đơn đã hủy</small><b>'+canc+'</b></div></div>'+
+    '<div class="card"><h2>7 ngày gần nhất</h2><small>Doanh thu nền tảng mỗi ngày</small><div class="bars">'+bars+'</div></div>'+
+    '<div class="card"><h2>Theo tài xế</h2><small>Số bên phải = phí 8% thu của tài xế</small>'+rows+'</div>'+
+    '<p class="muted"><small>Chỉ tính đơn đã hoàn thành có giá cuối. Tính từ 2000 đơn gần nhất.</small></p>';
+}
+
+/* ===== 2. Khách hàng ===== */
+function renderCus(){
+  var map={};
+  orders.forEach(function(o){
+    var p=String(o.customer_phone||"").trim();if(!p)return;
+    var c=map[p]||(map[p]={p:p,n:0,d:0,spent:0,last:o.created_at,list:[]});
+    c.n++;c.list.push(o);
+    if(isDone(o)){c.d++;c.spent+=Number(o.final_fare_vnd);}
+    if(new Date(o.created_at)>new Date(c.last))c.last=o.created_at;
+  });
+  var q=custQ.replace(/\D/g,"");
+  var arr=Object.keys(map).map(function(k){return map[k];}).filter(function(c){return !q||c.p.replace(/\D/g,"").indexOf(q)!==-1;})
+    .sort(function(a,b){return new Date(b.last)-new Date(a.last);});
+  var html=arr.slice(0,50).map(function(c){
+    var hist="";
+    if(openPhone===c.p){
+      hist='<div class="hist">'+c.list.slice(0,15).map(function(o){
+        return '<p><b>#'+esc(o.id)+'</b> · '+esc(fdate(o.created_at))+' · '+esc(o.status)+(isDone(o)?' · '+vnd(o.final_fare_vnd):'')+
+          '<br>'+esc(o.service_type||"")+': '+esc(o.pickup_address||"-")+' → '+esc(o.dropoff_address||"-")+'</p>';
+      }).join("")+(c.list.length>15?'<small>... và '+(c.list.length-15)+' đơn cũ hơn</small>':"")+'</div>';
+    }
+    return '<div class="card" style="padding:12px"><div class="row" data-phone="'+esc(c.p)+'" style="cursor:pointer;border:0;padding:0">'+
+      '<div><b>'+esc(c.p)+'</b><small>'+c.n+' đơn · '+c.d+' hoàn thành · chi '+vnd(c.spent)+'<br>Gần nhất: '+esc(fdate(c.last))+'</small></div>'+
+      '<a href="tel:'+esc(c.p.replace(/[^\d+]/g,""))+'" class="btn" style="text-decoration:none">Gọi</a></div>'+hist+'</div>';
+  }).join("")||'<p class="muted">Không tìm thấy khách hàng.</p>';
+  $("view").innerHTML='<input id="custSearch" type="search" inputmode="tel" placeholder="Tìm theo số điện thoại..." value="'+esc(custQ)+'">'+
+    '<p class="muted"><small>'+arr.length+' khách · bấm vào một khách để xem lịch sử đơn</small></p>'+html;
+  var inp=$("custSearch");
+  if(custQ){inp.focus();inp.setSelectionRange(custQ.length,custQ.length);}
+}
+
+/* ===== 3. Cài đặt ===== */
+async function loadSettings(){
+  $("view").innerHTML='<p class="muted">Đang tải cài đặt...</p>';
+  var r=await db.from("app_settings").select("key,value");
+  if(r.error){$("view").innerHTML='<p class="msg err">Không tải được cài đặt: '+esc(errText(r.error))+'<br>Hãy chạy SQL ở bước 1.</p>';return;}
+  var v={};(r.data||[]).forEach(function(x){v[x.key]=x.value;});
+  $("view").innerHTML='<div class="card"><h2>Cài đặt dịch vụ</h2><form id="setForm">'+FIELDS.map(function(f){
+    var val=v[f.k]==null?"":v[f.k];
+    if(f.t==="bool")return '<label class="chk"><input type="checkbox" name="'+f.k+'"'+(val==="0"?"":" checked")+'>'+esc(f.l)+'</label>';
+    return '<label for="f_'+f.k+'">'+esc(f.l)+'</label><input id="f_'+f.k+'" name="'+f.k+'" '+(f.t==="num"?'type="number" inputmode="numeric" min="0" step="1000"':'type="text" maxlength="200"')+' value="'+esc(val)+'">';
+  }).join("")+'<button class="btn btn-p btn-w" type="submit">Lưu cài đặt</button></form><p id="setMsg" class="msg"></p></div>'+
+  '<p class="muted"><small>Giá trị được lưu trong bảng app_settings. Trang khách hàng cần đọc bảng này mới áp dụng.</small></p>';
+}
+$("view").addEventListener("submit",async function(e){
+  if(e.target.id!=="setForm")return;
+  e.preventDefault();
+  var btn=e.target.querySelector("button[type=submit]");btn.disabled=true;
+  var rows=FIELDS.map(function(f){
+    var el=e.target.elements[f.k];
+    return {key:f.k,value:f.t==="bool"?(el.checked?"1":"0"):String(el.value).trim(),updated_at:new Date().toISOString()};
+  });
+  var r=await db.from("app_settings").upsert(rows,{onConflict:"key"});
+  btn.disabled=false;
+  var m=$("setMsg");
+  if(r.error){m.className="msg err";m.textContent="Lưu thất bại: "+errText(r.error);return;}
+  m.className="msg ok";m.textContent="Đã lưu cài đặt.";toast("Đã lưu cài đặt.");
+});
+
+/* ===== 4. Quản trị viên ===== */
+async function loadAdmins(msg,type){
+  var r=await db.rpc("admin_list");
+  if(r.error){$("view").innerHTML='<p class="msg err">Không tải được danh sách: '+esc(errText(r.error))+'<br>Hãy chạy SQL ở bước 1.</p>';return;}
+  $("view").innerHTML='<div class="card"><h2>Quản trị viên ('+r.data.length+')</h2>'+r.data.map(function(a){
+    var self=me&&a.user_id===me.id;
+    return '<div class="row"><div><b>'+esc(a.email)+'</b>'+(self?'<small>Tài khoản của bạn</small>':'')+'</div>'+
+      (self?'':'<button class="btn btn-d" data-radm="'+esc(a.user_id)+'" data-email="'+esc(a.email)+'">Xóa</button>')+'</div>';
+  }).join("")+'</div>'+
+  '<div class="card"><h2>Thêm quản trị viên</h2><small>Người này phải đã đăng ký tài khoản bằng email đó.</small>'+
+  '<form id="admForm"><input id="admEmail" type="email" placeholder="email@example.com" required autocomplete="off"><button class="btn btn-p btn-w" type="submit">Thêm quản trị viên</button></form>'+
+  '<p id="admMsg" class="msg '+(type||"")+'">'+esc(msg||"")+'</p></div>';
+}
+$("view").addEventListener("submit",async function(e){
+  if(e.target.id!=="admForm")return;
+  e.preventDefault();
+  var email=$("admEmail").value.trim();
+  if(!confirm("Cấp quyền quản trị cho "+email+"?\nNgười này sẽ xem và sửa được toàn bộ dữ liệu."))return;
+  var r=await db.rpc("admin_add",{p_email:email});
+  if(r.error)loadAdmins("Thất bại: "+errText(r.error),"err");
+  else{toast("Đã thêm quản trị viên.");loadAdmins("Đã thêm "+email,"ok");}
+});
+
+/* ===== Sự kiện chung ===== */
+$("view").addEventListener("click",async function(e){
+  var c=e.target.closest("[data-range]");
+  if(c){range=c.dataset.range;renderRev();return;}
+  var rm=e.target.closest("[data-radm]");
+  if(rm){
+    if(!confirm("Xóa quyền quản trị của "+rm.dataset.email+"?"))return;
+    var r=await db.rpc("admin_remove",{p_user:rm.dataset.radm});
+    if(r.error)loadAdmins("Thất bại: "+errText(r.error),"err");
+    else{toast("Đã xóa quyền quản trị.");loadAdmins("","");}
+    return;
+  }
+  if(e.target.closest("a"))return;
+  var p=e.target.closest("[data-phone]");
+  if(p){openPhone=openPhone===p.dataset.phone?"":p.dataset.phone;renderCus();}
+});
+$("view").addEventListener("input",function(e){
+  if(e.target.id==="custSearch"){custQ=e.target.value;renderCus();}
+});
+
+db.auth.onAuthStateChange(function(ev){if(ev==="SIGNED_OUT"&&me)showLogin("Phiên đăng nhập đã hết hạn.");});
+(async function(){
+  var r=await db.auth.getSession();
+  if(r.error||!r.data.session)return;
+  try{await openApp(r.data.session.user);}
+  catch(err){await db.auth.signOut();showLogin(errText(err));}
+})();
+</script>
+</body>
+</html>
